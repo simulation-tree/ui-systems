@@ -295,7 +295,7 @@ namespace UI.Systems
         {
             TextField textField = new Entity(world, textFieldEntity).As<TextField>();
             textField.Editing = true;
-            Vector3 worldPosition = textField.AsEntity().As<Transform>().WorldPosition;
+            Vector3 worldPosition = textField.As<Transform>().WorldPosition;
             Vector2 pointerPosition = pointer.Position;
             pointerPosition.X -= worldPosition.X;
             pointerPosition.Y -= worldPosition.Y;
