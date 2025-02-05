@@ -27,167 +27,76 @@ jobs:
         uses: actions/checkout@v4.1.2
         with:
           path: ${{ github.event.repository.name }}
-
-      - name: Checkout `unmanaged`
-        uses: actions/checkout@v4.1.2
-        with:
-          repository: game-simulations/unmanaged
-          token: ${{ secrets.PAT }}
-          path: unmanaged
-
-      - name: Checkout `collections`
-        uses: actions/checkout@v4.1.2
-        with:
-          repository: game-simulations/collections
-          token: ${{ secrets.PAT }}
-          path: collections
-
-      - name: Checkout `types`
-        uses: actions/checkout@v4.1.2
-        with:
-          repository: game-simulations/types
-          token: ${{ secrets.PAT }}
-          path: types
-
-      - name: Checkout `worlds`
-        uses: actions/checkout@v4.1.2
-        with:
-          repository: game-simulations/worlds
-          token: ${{ secrets.PAT }}
-          path: worlds
-
-      - name: Checkout `data`
-        uses: actions/checkout@v4.1.2
-        with:
-          repository: game-simulations/data
-          token: ${{ secrets.PAT }}
-          path: data
-
-      - name: Checkout `rendering`
-        uses: actions/checkout@v4.1.2
-        with:
-          repository: game-simulations/rendering
-          token: ${{ secrets.PAT }}
-          path: rendering
-
-      - name: Checkout `text-rendering`
-        uses: actions/checkout@v4.1.2
-        with:
-          repository: game-simulations/text-rendering
-          token: ${{ secrets.PAT }}
-          path: text-rendering
-
-      - name: Checkout `shaders`
-        uses: actions/checkout@v4.1.2
-        with:
-          repository: game-simulations/shaders
-          token: ${{ secrets.PAT }}
-          path: shaders
-
-      - name: Checkout `automations`
-        uses: actions/checkout@v4.1.2
-        with:
-          repository: game-simulations/automations
-          token: ${{ secrets.PAT }}
-          path: automations
-
-      - name: Checkout `clipboard`
-        uses: actions/checkout@v4.1.2
-        with:
-          repository: game-simulations/clipboard
-          token: ${{ secrets.PAT }}
-          path: clipboard
-
+            
       - name: Checkout `ui`
         uses: actions/checkout@v4.1.2
         with:
           repository: game-simulations/ui
           token: ${{ secrets.PAT }}
           path: ui
-
-      - name: Checkout `simulation`
+      
+      - name: Checkout `clipboard`
         uses: actions/checkout@v4.1.2
         with:
-          repository: game-simulations/simulation
+          repository: game-simulations/clipboard
           token: ${{ secrets.PAT }}
-          path: simulation
-
-      - name: Checkout `cameras`
-        uses: actions/checkout@v4.1.2
-        with:
-          repository: game-simulations/cameras
-          token: ${{ secrets.PAT }}
-          path: cameras
-
-      - name: Checkout `default-presentation-assets`
-        uses: actions/checkout@v4.1.2
-        with:
-          repository: game-simulations/default-presentation-assets
-          token: ${{ secrets.PAT }}
-          path: default-presentation-assets
-
-      - name: Checkout `fonts`
-        uses: actions/checkout@v4.1.2
-        with:
-          repository: game-simulations/fonts
-          token: ${{ secrets.PAT }}
-          path: fonts
-
-      - name: Checkout `textures`
-        uses: actions/checkout@v4.1.2
-        with:
-          repository: game-simulations/textures
-          token: ${{ secrets.PAT }}
-          path: textures
-
+          path: clipboard
+      
       - name: Checkout `transforms`
         uses: actions/checkout@v4.1.2
         with:
           repository: game-simulations/transforms
           token: ${{ secrets.PAT }}
           path: transforms
-
-      - name: Checkout `materials`
-        uses: actions/checkout@v4.1.2
-        with:
-          repository: game-simulations/materials
-          token: ${{ secrets.PAT }}
-          path: materials
-
-      - name: Checkout `meshes`
-        uses: actions/checkout@v4.1.2
-        with:
-          repository: game-simulations/meshes
-          token: ${{ secrets.PAT }}
-          path: meshes
-
-      - name: Checkout `meshes-9s`
-        uses: actions/checkout@v4.1.2
-        with:
-          repository: game-simulations/meshes-9s
-          token: ${{ secrets.PAT }}
-          path: meshes-9s
-
-      - name: Checkout `bin-packer`
-        uses: actions/checkout@v4.1.2
-        with:
-          repository: game-simulations/bin-packer
-          token: ${{ secrets.PAT }}
-          path: bin-packer
       
-      - name: Setup dotnet
+      - name: Checkout `simulation`
+        uses: actions/checkout@v4.1.2
+        with:
+          repository: game-simulations/simulation
+          token: ${{ secrets.PAT }}
+          path: simulation
+      
+      - name: Checkout `worlds`
+        uses: actions/checkout@v4.1.2
+        with:
+          repository: game-simulations/worlds
+          token: ${{ secrets.PAT }}
+          path: worlds
+      
+      - name: Checkout `types`
+        uses: actions/checkout@v4.1.2
+        with:
+          repository: game-simulations/types
+          token: ${{ secrets.PAT }}
+          path: types
+      
+      - name: Checkout `unmanaged`
+        uses: actions/checkout@v4.1.2
+        with:
+          repository: game-simulations/unmanaged
+          token: ${{ secrets.PAT }}
+          path: unmanaged
+      
+      - name: Checkout `rendering`
+        uses: actions/checkout@v4.1.2
+        with:
+          repository: game-simulations/rendering
+          token: ${{ secrets.PAT }}
+          path: rendering
+            
+      - name: Setup
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '9.0.x'
-
-      - name: Test project
+            
+      - name: Test
         run: dotnet test "${{ github.event.repository.name }}/tests" -c Debug --logger "trx"
-
-      - name: Publish Report
+            
+      - name: Report
         uses: dorny/test-reporter@v1
         if: always()
         with:
-          working-directory:  ${{ github.event.repository.name }}
+          working-directory: ${{ github.event.repository.name }}
           name: Report
           path: 'tests/TestResults/*.trx'
           reporter: dotnet-trx
