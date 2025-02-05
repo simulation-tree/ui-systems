@@ -46,12 +46,13 @@ namespace UI.Systems
                 processors.Add(r.component1.function);
             }
 
-            ComponentQuery<IsLabel, IsTextRenderer> labelQuery = new(world);
+            ComponentQuery<IsTextRenderer> labelQuery = new(world);
             labelQuery.ExcludeDisabled(true);
+            labelQuery.RequireTag<IsLabel>();
             labelQuery.RequireArray<LabelCharacter>();
             foreach (var r in labelQuery)
             {
-                ref rint textMeshReference = ref r.component2.textMeshReference;
+                ref rint textMeshReference = ref r.component1.textMeshReference;
                 if (textMeshReference != default)
                 {
                     USpan<char> originalText = world.GetArray<LabelCharacter>(r.entity).As<char>();
