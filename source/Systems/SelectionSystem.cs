@@ -1,10 +1,11 @@
 ﻿using Collections;
-using UI.Components;
 using Rendering;
 using Simulation;
 using System;
 using System.Numerics;
 using Transforms.Components;
+using UI.Components;
+using Unmanaged;
 using Worlds;
 
 namespace UI.Systems
@@ -46,152 +47,160 @@ namespace UI.Systems
 
         private readonly void Update(World world)
         {
-            ComponentQuery<IsPointer> pointerQuery = new(world);
-            pointerQuery.ExcludeDisabled(true);
-            foreach (var p in pointerQuery)
+            ComponentType pointerComponent = world.Schema.GetComponent<IsPointer>();
+            foreach (Chunk chunk in world.Chunks)
             {
-                Entity pointer = new(world, p.entity);
-                ref IsPointer component = ref p.component1;
-                Vector2 pointerPosition = component.position;
-                float lastDepth = float.MinValue;
-                uint newHoveringOver = default;
-                bool hasPrimaryIntent = component.HasPrimaryIntent;
-                bool hasSecondaryIntent = component.HasSecondaryIntent;
-                bool primaryIntentStarted = false;
-                bool secondaryIntentStarted = false;
-                if (pointerStates.TryAdd(pointer, component.action))
+                Definition definition = chunk.Definition;
+                if (definition.Contains(pointerComponent) && !definition.Contains(TagType.Disabled))
                 {
-                    primaryIntentStarted = hasPrimaryIntent;
-                    secondaryIntentStarted = hasSecondaryIntent;
-                }
-                else
-                {
-                    ref PointerAction action = ref pointerStates[pointer];
-                    bool lastPrimaryIntent = (action & PointerAction.Primary) != 0;
-                    if (!lastPrimaryIntent && hasPrimaryIntent)
+                    USpan<uint> entities = chunk.Entities;
+                    USpan<IsPointer> components = chunk.GetComponents<IsPointer>(pointerComponent);
+                    for (uint i = 0; i < entities.Length; i++)
                     {
-                        primaryIntentStarted = true;
-                    }
-
-                    bool lastSecondaryIntent = (action & PointerAction.Secondary) != 0;
-                    if (!lastSecondaryIntent && hasSecondaryIntent)
-                    {
-                        secondaryIntentStarted = true;
-                    }
-
-                    action = component.action;
-                }
-
-                //find currently hovering over entity
-                FindSelectableEntities(world, component.selectionMask);
-                foreach ((uint selectableEntity, LocalToWorld ltw) in selectableEntities)
-                {
-                    Vector3 position = ltw.Position;
-                    Vector3 scale = ltw.Scale;
-                    ref WorldRotation worldRotationComponent = ref world.TryGetComponent<WorldRotation>(selectableEntity, out bool hasWorldRotation);
-                    if (hasWorldRotation)
-                    {
-                        scale = Vector3.Transform(scale, worldRotationComponent.value);
-                    }
-
-                    Vector2 offset = new Vector2(position.X, position.Y) + new Vector2(scale.X, scale.Y);
-                    Vector2 min = Vector2.Min(new(position.X, position.Y), offset);
-                    Vector2 max = Vector2.Max(new(position.X, position.Y), offset);
-                    UIBounds bounds = new(min, max);
-                    if (bounds.Contains(pointerPosition))
-                    {
-                        float depth = position.Z;
-                        if (lastDepth < depth)
+                        ref IsPointer component = ref components[i];
+                        Entity pointer = new(world, entities[i]);
+                        Vector2 pointerPosition = component.position;
+                        float lastDepth = float.MinValue;
+                        uint newHoveringOver = default;
+                        bool hasPrimaryIntent = component.HasPrimaryIntent;
+                        bool hasSecondaryIntent = component.HasSecondaryIntent;
+                        bool primaryIntentStarted = false;
+                        bool secondaryIntentStarted = false;
+                        if (pointerStates.TryAdd(pointer, component.action))
                         {
-                            lastDepth = depth;
-                            newHoveringOver = selectableEntity;
-                        }
-                    }
-                }
-
-                //update currently selected entity
-                ref rint hoveringOverReference = ref component.hoveringOverReference;
-                uint currentHoveringOver = hoveringOverReference == default ? default : world.GetReference(p.entity, hoveringOverReference);
-                
-                //handle state mismatch
-                if (!world.ContainsEntity(currentHoveringOver))
-                {
-                    currentHoveringOver = default;
-                }
-
-                if (currentHoveringOver != newHoveringOver)
-                {
-                    if (currentHoveringOver != default && world.ContainsEntity(currentHoveringOver))
-                    {
-                        ref IsSelectable oldSelectable = ref world.TryGetComponent<IsSelectable>(currentHoveringOver, out bool contains);
-                        if (contains)
-                        {
-                            oldSelectable.state = default;
-                        }
-                    }
-
-                    if (newHoveringOver != default)
-                    {
-                        ref IsSelectable newSelectable = ref world.GetComponent<IsSelectable>(newHoveringOver);
-                        newSelectable.state |= IsSelectable.State.IsSelected;
-                    }
-
-                    if (newHoveringOver == default)
-                    {
-                        world.RemoveReference(p.entity, hoveringOverReference);
-                        hoveringOverReference = default;
-                    }
-                    else
-                    {
-                        if (hoveringOverReference == default)
-                        {
-                            hoveringOverReference = world.AddReference(p.entity, newHoveringOver);
+                            primaryIntentStarted = hasPrimaryIntent;
+                            secondaryIntentStarted = hasSecondaryIntent;
                         }
                         else
                         {
-                            world.SetReference(p.entity, hoveringOverReference, newHoveringOver);
+                            ref PointerAction action = ref pointerStates[pointer];
+                            bool lastPrimaryIntent = (action & PointerAction.Primary) != 0;
+                            if (!lastPrimaryIntent && hasPrimaryIntent)
+                            {
+                                primaryIntentStarted = true;
+                            }
+
+                            bool lastSecondaryIntent = (action & PointerAction.Secondary) != 0;
+                            if (!lastSecondaryIntent && hasSecondaryIntent)
+                            {
+                                secondaryIntentStarted = true;
+                            }
+
+                            action = component.action;
                         }
-                    }
-                }
-                else if (newHoveringOver != default && world.ContainsEntity(newHoveringOver))
-                {
-                    ref IsSelectable selectable = ref world.GetComponent<IsSelectable>(newHoveringOver);
-                    if (primaryIntentStarted)
-                    {
-                        selectable.state |= IsSelectable.State.WasPrimaryInteractedWith;
-                    }
-                    else if (hasPrimaryIntent)
-                    {
-                        if (selectable.WasPrimaryInteractedWith)
+
+                        //find currently hovering over entity
+                        FindSelectableEntities(world, component.selectionMask);
+                        foreach ((uint selectableEntity, LocalToWorld ltw) in selectableEntities)
                         {
-                            selectable.state |= IsSelectable.State.IsPrimaryInteractedWith;
+                            Vector3 position = ltw.Position;
+                            Vector3 scale = ltw.Scale;
+                            ref WorldRotation worldRotationComponent = ref world.TryGetComponent<WorldRotation>(selectableEntity, out bool hasWorldRotation);
+                            if (hasWorldRotation)
+                            {
+                                scale = Vector3.Transform(scale, worldRotationComponent.value);
+                            }
+
+                            Vector2 offset = new Vector2(position.X, position.Y) + new Vector2(scale.X, scale.Y);
+                            Vector2 min = Vector2.Min(new(position.X, position.Y), offset);
+                            Vector2 max = Vector2.Max(new(position.X, position.Y), offset);
+                            UIBounds bounds = new(min, max);
+                            if (bounds.Contains(pointerPosition))
+                            {
+                                float depth = position.Z;
+                                if (lastDepth < depth)
+                                {
+                                    lastDepth = depth;
+                                    newHoveringOver = selectableEntity;
+                                }
+                            }
                         }
 
-                        selectable.state &= ~IsSelectable.State.WasPrimaryInteractedWith;
-                    }
-                    else
-                    {
-                        selectable.state &= ~IsSelectable.State.IsPrimaryInteractedWith;
-                        selectable.state &= ~IsSelectable.State.WasPrimaryInteractedWith;
-                    }
+                        //update currently selected entity
+                        ref rint hoveringOverReference = ref component.hoveringOverReference;
+                        uint currentHoveringOver = hoveringOverReference == default ? default : pointer.GetReference(hoveringOverReference);
 
-                    if (secondaryIntentStarted)
-                    {
-                        selectable.state |= IsSelectable.State.WasSecondaryInteractedWith;
-                    }
-                    else if (hasSecondaryIntent)
-                    {
-                        if (selectable.WasSecondaryInteractedWith)
+                        //handle state mismatch
+                        if (!world.ContainsEntity(currentHoveringOver))
                         {
-                            selectable.state |= IsSelectable.State.IsSecondaryInteractedWith;
+                            currentHoveringOver = default;
                         }
 
-                        selectable.state &= ~IsSelectable.State.WasSecondaryInteractedWith;
-                    }
-                    else
-                    {
-                        selectable.state &= ~IsSelectable.State.IsSecondaryInteractedWith;
-                        selectable.state &= ~IsSelectable.State.WasSecondaryInteractedWith;
+                        if (currentHoveringOver != newHoveringOver)
+                        {
+                            if (currentHoveringOver != default && world.ContainsEntity(currentHoveringOver))
+                            {
+                                ref IsSelectable oldSelectable = ref world.TryGetComponent<IsSelectable>(currentHoveringOver, out bool contains);
+                                if (contains)
+                                {
+                                    oldSelectable.state = default;
+                                }
+                            }
+
+                            if (newHoveringOver != default)
+                            {
+                                ref IsSelectable newSelectable = ref world.GetComponent<IsSelectable>(newHoveringOver);
+                                newSelectable.state |= IsSelectable.State.IsSelected;
+                            }
+
+                            if (newHoveringOver == default)
+                            {
+                                pointer.RemoveReference(hoveringOverReference);
+                                hoveringOverReference = default;
+                            }
+                            else
+                            {
+                                if (hoveringOverReference == default)
+                                {
+                                    hoveringOverReference = pointer.AddReference(newHoveringOver);
+                                }
+                                else
+                                {
+                                    pointer.SetReference(hoveringOverReference, newHoveringOver);
+                                }
+                            }
+                        }
+                        else if (newHoveringOver != default && world.ContainsEntity(newHoveringOver))
+                        {
+                            ref IsSelectable selectable = ref world.GetComponent<IsSelectable>(newHoveringOver);
+                            if (primaryIntentStarted)
+                            {
+                                selectable.state |= IsSelectable.State.WasPrimaryInteractedWith;
+                            }
+                            else if (hasPrimaryIntent)
+                            {
+                                if (selectable.WasPrimaryInteractedWith)
+                                {
+                                    selectable.state |= IsSelectable.State.IsPrimaryInteractedWith;
+                                }
+
+                                selectable.state &= ~IsSelectable.State.WasPrimaryInteractedWith;
+                            }
+                            else
+                            {
+                                selectable.state &= ~IsSelectable.State.IsPrimaryInteractedWith;
+                                selectable.state &= ~IsSelectable.State.WasPrimaryInteractedWith;
+                            }
+
+                            if (secondaryIntentStarted)
+                            {
+                                selectable.state |= IsSelectable.State.WasSecondaryInteractedWith;
+                            }
+                            else if (hasSecondaryIntent)
+                            {
+                                if (selectable.WasSecondaryInteractedWith)
+                                {
+                                    selectable.state |= IsSelectable.State.IsSecondaryInteractedWith;
+                                }
+
+                                selectable.state &= ~IsSelectable.State.WasSecondaryInteractedWith;
+                            }
+                            else
+                            {
+                                selectable.state &= ~IsSelectable.State.IsSecondaryInteractedWith;
+                                selectable.state &= ~IsSelectable.State.WasSecondaryInteractedWith;
+                            }
+                        }
                     }
                 }
             }
@@ -208,14 +217,25 @@ namespace UI.Systems
         {
             selectableEntities.Clear();
 
-            ComponentQuery<IsSelectable, LocalToWorld> selectableQuery = new(world);
-            selectableQuery.ExcludeDisabled(true);
-            foreach (var s in selectableQuery)
+            ComponentType selectableComponent = world.Schema.GetComponent<IsSelectable>();
+            ComponentType ltwComponent = world.Schema.GetComponent<LocalToWorld>();
+            foreach (Chunk chunk in world.Chunks)
             {
-                ref IsSelectable selectable = ref s.component1;
-                if (selectionMask.ContainsAny(selectable.selectionMask))
+                Definition definition = chunk.Definition;
+                if (definition.Contains(selectableComponent) && definition.Contains(ltwComponent) && !definition.Contains(TagType.Disabled))
                 {
-                    selectableEntities.Add((s.entity, s.component2));
+                    USpan<uint> entities = chunk.Entities;
+                    USpan<IsSelectable> selectableComponents = chunk.GetComponents<IsSelectable>(selectableComponent);
+                    USpan<LocalToWorld> ltwComponents = chunk.GetComponents<LocalToWorld>(ltwComponent);
+                    for (uint i = 0; i < entities.Length; i++)
+                    {
+                        ref IsSelectable selectable = ref selectableComponents[i];
+                        if (selectionMask.ContainsAny(selectable.selectionMask))
+                        {
+                            uint entity = entities[i];
+                            selectableEntities.Add((entity, ltwComponents[i]));
+                        }
+                    }
                 }
             }
         }

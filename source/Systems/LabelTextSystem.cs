@@ -1,9 +1,9 @@
 ﻿using Collections;
-using UI.Components;
-using UI.Functions;
 using Rendering.Components;
 using Simulation;
 using System;
+using UI.Components;
+using UI.Functions;
 using Unmanaged;
 using Worlds;
 
@@ -39,45 +39,64 @@ namespace UI.Systems
 
         void ISystem.Update(in SystemContainer systemContainer, in World world, in TimeSpan delta)
         {
+            ComponentType textRendererType = world.Schema.GetComponent<IsTextRenderer>();
+            ComponentType processorType = world.Schema.GetComponent<IsLabelProcessor>();
+            TagType labelTag = world.Schema.GetTag<IsLabel>();
+            ArrayElementType characterArrayType = world.Schema.GetArrayElement<LabelCharacter>();
+
             processors.Clear();
-            ComponentQuery<IsLabelProcessor> processorQuery = new(world);
-            foreach (var r in processorQuery)
+            foreach (Chunk chunk in world.Chunks)
             {
-                processors.Add(r.component1.function);
+                if (chunk.Definition.Contains(processorType))
+                {
+                    USpan<IsLabelProcessor> components = chunk.GetComponents<IsLabelProcessor>(processorType);
+                    for (uint i = 0; i < components.Length; i++)
+                    {
+                        ref IsLabelProcessor processor = ref components[i];
+                        processors.Add(processor.function);
+                    }
+                }
             }
 
-            ComponentQuery<IsTextRenderer> labelQuery = new(world);
-            labelQuery.ExcludeDisabled(true);
-            labelQuery.RequireTag<IsLabel>();
-            labelQuery.RequireArray<LabelCharacter>();
-            foreach (var r in labelQuery)
+            foreach (Chunk chunk in world.Chunks)
             {
-                ref rint textMeshReference = ref r.component1.textMeshReference;
-                if (textMeshReference != default)
+                Definition definition = chunk.Definition;
+                if (definition.Contains(labelTag) && definition.Contains(textRendererType) && definition.Contains(characterArrayType) && !definition.Contains(TagType.Disabled))
                 {
-                    USpan<char> originalText = world.GetArray<LabelCharacter>(r.entity).As<char>();
-                    result.CopyFrom(originalText);
-                    foreach (TryProcessLabel token in processors)
+                    USpan<uint> entities = chunk.Entities;
+                    USpan<IsTextRenderer> components = chunk.GetComponents<IsTextRenderer>(textRendererType);
+                    for (uint i = 0; i < entities.Length; i++)
                     {
-                        token.Invoke(result.AsSpan(), result);
-                    }
+                        ref IsTextRenderer textRenderer = ref components[i];
+                        ref rint textMeshReference = ref textRenderer.textMeshReference;
+                        if (textMeshReference != default)
+                        {
+                            uint entity = entities[i];
+                            USpan<char> originalText = world.GetArray<LabelCharacter>(entity).As<char>();
+                            result.CopyFrom(originalText);
+                            foreach (TryProcessLabel token in processors)
+                            {
+                                token.Invoke(result.AsSpan(), result);
+                            }
 
-                    uint textMeshEntity = world.GetReference(r.entity, textMeshReference);
-                    uint arrayLength = world.GetArrayLength<TextCharacter>(textMeshEntity);
-                    bool lengthChanged = false;
-                    if (arrayLength != result.Length)
-                    {
-                        //make sure destination array matches length
-                        world.ResizeArray<TextCharacter>(textMeshEntity, result.Length);
-                        lengthChanged = true;
-                    }
+                            uint textMeshEntity = world.GetReference(entity, textMeshReference);
+                            uint arrayLength = world.GetArrayLength<TextCharacter>(textMeshEntity);
+                            bool lengthChanged = false;
+                            if (arrayLength != result.Length)
+                            {
+                                //make sure destination array matches length
+                                world.ResizeArray<TextCharacter>(textMeshEntity, result.Length);
+                                lengthChanged = true;
+                            }
 
-                    USpan<char> targetText = world.GetArray<TextCharacter>(textMeshEntity).As<char>();
-                    if (lengthChanged || !targetText.SequenceEqual(result.AsSpan()))
-                    {
-                        ref IsTextMeshRequest request = ref world.GetComponent<IsTextMeshRequest>(textMeshEntity);
-                        request.loaded = false;
-                        result.CopyTo(targetText);
+                            USpan<char> targetText = world.GetArray<TextCharacter>(textMeshEntity).As<char>();
+                            if (lengthChanged || !targetText.SequenceEqual(result.AsSpan()))
+                            {
+                                ref IsTextMeshRequest request = ref world.GetComponent<IsTextMeshRequest>(textMeshEntity);
+                                request.loaded = false;
+                                result.CopyTo(targetText);
+                            }
+                        }
                     }
                 }
             }

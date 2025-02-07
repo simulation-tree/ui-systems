@@ -3,6 +3,7 @@ using UI.Components;
 using Simulation;
 using System;
 using Worlds;
+using Unmanaged;
 
 namespace UI.Systems
 {
@@ -45,44 +46,52 @@ namespace UI.Systems
         {
             FindToggleEntities(world);
 
-            ComponentQuery<IsPointer> pointerQuery = new(world);
-            pointerQuery.ExcludeDisabled(true);
-            foreach (var p in pointerQuery)
+            ComponentType pointerComponent = world.Schema.GetComponent<IsPointer>();
+            foreach (Chunk chunk in world.Chunks)
             {
-                ref IsPointer pointer = ref p.component1;
-                uint entity = p.entity;
-                bool pressed = pointer.HasPrimaryIntent;
-                bool wasPressed = pressedPointers.Contains(entity);
-                if (wasPressed != pressed)
+                Definition definition = chunk.Definition;
+                if (definition.Contains(pointerComponent) && !definition.Contains(TagType.Disabled))
                 {
-                    if (pressed)
+                    USpan<uint> entities = chunk.Entities;
+                    USpan<IsPointer> components = chunk.GetComponents<IsPointer>(pointerComponent);
+                    for (uint i = 0; i < entities.Length; i++)
                     {
-                        rint hoveringOverReference = pointer.hoveringOverReference;
-                        if (hoveringOverReference != default)
+                        ref IsPointer pointer = ref components[i];
+                        uint entity = entities[i];
+                        bool pressed = pointer.HasPrimaryIntent;
+                        bool wasPressed = pressedPointers.Contains(entity);
+                        if (wasPressed != pressed)
                         {
-                            uint selectedEntity = world.GetReference(entity, hoveringOverReference);
-                            if (toggleEntities.Contains(selectedEntity))
+                            if (pressed)
                             {
-                                ref IsToggle component = ref world.GetComponent<IsToggle>(selectedEntity);
-                                component.value = !component.value;
-
-                                rint checkmarkReference = component.checkmarkReference;
-                                uint checkmarkEntity = world.GetReference(selectedEntity, checkmarkReference);
-                                world.SetEnabled(checkmarkEntity, component.value);
-
-                                if (component.callback != default)
+                                rint hoveringOverReference = pointer.hoveringOverReference;
+                                if (hoveringOverReference != default)
                                 {
-                                    Toggle toggle = new Entity(world, selectedEntity).As<Toggle>();
-                                    component.callback.Invoke(toggle, component.value);
+                                    uint selectedEntity = world.GetReference(entity, hoveringOverReference);
+                                    if (toggleEntities.Contains(selectedEntity))
+                                    {
+                                        ref IsToggle component = ref world.GetComponent<IsToggle>(selectedEntity);
+                                        component.value = !component.value;
+
+                                        rint checkmarkReference = component.checkmarkReference;
+                                        uint checkmarkEntity = world.GetReference(selectedEntity, checkmarkReference);
+                                        world.SetEnabled(checkmarkEntity, component.value);
+
+                                        if (component.callback != default)
+                                        {
+                                            Toggle toggle = new Entity(world, selectedEntity).As<Toggle>();
+                                            component.callback.Invoke(toggle, component.value);
+                                        }
+                                    }
                                 }
+
+                                pressedPointers.Add(entity);
+                            }
+                            else
+                            {
+                                pressedPointers.TryRemoveBySwapping(entity);
                             }
                         }
-
-                        pressedPointers.Add(entity);
-                    }
-                    else
-                    {
-                        pressedPointers.TryRemoveBySwapping(entity);
                     }
                 }
             }
@@ -91,10 +100,15 @@ namespace UI.Systems
         private readonly void FindToggleEntities(World world)
         {
             toggleEntities.Clear();
-            ComponentQuery<IsToggle> query = new(world);
-            foreach (var t in query)
+            ComponentType toggleComponent = world.Schema.GetComponent<IsToggle>();
+            foreach (Chunk chunk in world.Chunks)
             {
-                toggleEntities.Add(t.entity);
+                Definition definition = chunk.Definition;
+                if (definition.Contains(toggleComponent) && !definition.Contains(TagType.Disabled))
+                {
+                    USpan<uint> entities = chunk.Entities;
+                    toggleEntities.AddRange(entities);
+                }
             }
         }
     }

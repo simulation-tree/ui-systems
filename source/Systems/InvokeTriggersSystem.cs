@@ -1,7 +1,8 @@
 ﻿using Collections;
-using UI.Components;
 using Simulation;
 using System;
+using UI.Components;
+using Unmanaged;
 using Worlds;
 
 namespace UI.Systems
@@ -33,21 +34,29 @@ namespace UI.Systems
         void ISystem.Update(in SystemContainer systemContainer, in World world, in TimeSpan delta)
         {
             //find new entities
-            ComponentQuery<IsTrigger> invokeQuery = new(world);
-            invokeQuery.ExcludeDisabled(true);
-            foreach (var x in invokeQuery)
+            ComponentType triggerComponent = world.Schema.GetComponent<IsTrigger>();
+            foreach (Chunk chunk in world.Chunks)
             {
-                Entity entity = new(world, x.entity);
-                ref IsTrigger trigger = ref x.component1;
-                int triggerHash = trigger.GetHashCode();
-                if (!entitiesPerTrigger.TryGetValue(triggerHash, out List<Entity> entities))
+                Definition definition = chunk.Definition;
+                if (definition.Contains(triggerComponent) && !definition.Contains(TagType.Disabled))
                 {
-                    entities = new();
-                    entitiesPerTrigger.Add(triggerHash, entities);
-                    functions.Add(triggerHash, trigger);
-                }
+                    USpan<uint> entities = chunk.Entities;
+                    USpan<IsTrigger> triggers = chunk.GetComponents<IsTrigger>(triggerComponent);
+                    for (uint i = 0; i < entities.Length; i++)
+                    {
+                        ref IsTrigger trigger = ref triggers[i];
+                        int triggerHash = trigger.GetHashCode();
+                        if (!entitiesPerTrigger.TryGetValue(triggerHash, out List<Entity> entitiesList))
+                        {
+                            entitiesList = new();
+                            entitiesPerTrigger.Add(triggerHash, entitiesList);
+                            functions.Add(triggerHash, trigger);
+                        }
 
-                entities.Add(entity);
+                        Entity entityContainer = new(world, entities[i]);
+                        entitiesList.Add(entityContainer);
+                    }
+                }
             }
 
             foreach (int functionHash in entitiesPerTrigger.Keys)
