@@ -6,6 +6,7 @@ using Rendering.Components;
 using Simulation;
 using System;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using Transforms;
 using Transforms.Components;
 using UI.Components;
@@ -15,6 +16,7 @@ using Worlds;
 
 namespace UI.Systems
 {
+    [SkipLocalsInit]
     public partial struct TextFieldEditingSystem : ISystem
     {
         private static readonly char[] controlCharacters = [' ', '.', ',', '_', '-', '+', '*', '/', '\n'];
@@ -106,7 +108,6 @@ namespace UI.Systems
                 bool editingAny = false;
                 bool startedEditing = false;
                 DateTime now = DateTime.UtcNow;
-                USpan<char> pressedBuffer = stackalloc char[(int)FixedString.Capacity];
                 ulong ticks = (ulong)((now - DateTime.UnixEpoch).TotalSeconds * 3f);
 
                 ComponentQuery<IsTextField, IsSelectable> textFieldQuery = new(world);

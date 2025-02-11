@@ -3,6 +3,7 @@ using Rendering;
 using Simulation;
 using System;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using Transforms.Components;
 using UI.Components;
 using Unmanaged;
@@ -16,6 +17,7 @@ namespace UI.Systems
         {
         }
 
+        [SkipLocalsInit]
         void ISystem.Update(in SystemContainer systemContainer, in World world, in TimeSpan delta)
         {
             USpan<uint> destroyedCanvases = stackalloc uint[64];
