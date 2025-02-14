@@ -13,7 +13,7 @@ namespace UI.Systems
     {
         private readonly Dictionary<Entity, bool> lastPressedPointers;
         private Entity resizingEntity;
-        private IsResizable.Boundary resizeBoundary;
+        private IsResizable.EdgeMask resizeBoundary;
         private Pointer activePointer;
         private Vector2 lastPointerPosition;
 
@@ -68,7 +68,7 @@ namespace UI.Systems
                             if (pointer.HasPrimaryIntent && !lastPressedPointers[new(world, p.entity)])
                             {
                                 Vector2 pointerPosition = pointer.position;
-                                IsResizable.Boundary boundary = resizable.GetBoundary(pointerPosition);
+                                IsResizable.EdgeMask boundary = resizable.GetBoundary(pointerPosition);
                                 if (boundary != default)
                                 {
                                     resizingEntity = resizable;
@@ -102,21 +102,21 @@ namespace UI.Systems
                 ref Position position = ref resizingEntity.GetComponent<Position>();
                 ref Scale scale = ref resizingEntity.GetComponent<Scale>();
 
-                if (resizeBoundary.HasFlag(IsResizable.Boundary.Right))
+                if (resizeBoundary.HasFlag(IsResizable.EdgeMask.Right))
                 {
                     scale.value.X += pointerDelta.X;
                 }
-                else if (resizeBoundary.HasFlag(IsResizable.Boundary.Left))
+                else if (resizeBoundary.HasFlag(IsResizable.EdgeMask.Left))
                 {
                     scale.value.X -= pointerDelta.X;
                     position.value.X += pointerDelta.X;
                 }
 
-                if (resizeBoundary.HasFlag(IsResizable.Boundary.Top))
+                if (resizeBoundary.HasFlag(IsResizable.EdgeMask.Top))
                 {
                     scale.value.Y += pointerDelta.Y;
                 }
-                else if (resizeBoundary.HasFlag(IsResizable.Boundary.Bottom))
+                else if (resizeBoundary.HasFlag(IsResizable.EdgeMask.Bottom))
                 {
                     scale.value.Y -= pointerDelta.Y;
                     position.value.Y += pointerDelta.Y;

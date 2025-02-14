@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Numerics;
 using UI.Components;
-using Worlds;
 
 namespace UI.Systems.Tests
 {
@@ -80,7 +79,6 @@ namespace UI.Systems.Tests
         }
     }
 
-    [Component]
     public struct Result
     {
         public int value;
@@ -91,7 +89,6 @@ namespace UI.Systems.Tests
         }
     }
 
-    [Component]
     public struct First
     {
         public int value;
@@ -102,7 +99,6 @@ namespace UI.Systems.Tests
         }
     }
 
-    [Component]
     public struct Second
     {
         public int value;
@@ -113,7 +109,6 @@ namespace UI.Systems.Tests
         }
     }
 
-    [Component]
     public struct FirstFloat
     {
         public float value;
@@ -124,7 +119,6 @@ namespace UI.Systems.Tests
         }
     }
 
-    [Component]
     public struct SecondFloat
     {
         public float value;
@@ -135,7 +129,6 @@ namespace UI.Systems.Tests
         }
     }
 
-    [Component]
     public struct ResultFloat
     {
         public float value;
@@ -146,7 +139,6 @@ namespace UI.Systems.Tests
         }
     }
 
-    [Component]
     public struct FirstVector
     {
         public Vector3 value;
@@ -157,7 +149,6 @@ namespace UI.Systems.Tests
         }
     }
 
-    [Component]
     public struct SecondVector
     {
         public Vector3 value;
@@ -168,7 +159,6 @@ namespace UI.Systems.Tests
         }
     }
 
-    [Component]
     public struct ResultVector
     {
         public Vector3 value;
