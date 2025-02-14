@@ -23,6 +23,10 @@
 		<ProjectReference Include="..\..\transforms\source\Transforms.csproj" />
 		<ProjectReference Include="..\..\clipboard\source\Clipboard.csproj" />
 		<ProjectReference Include="..\..\ui\source\UI.csproj" />
+		<ProjectReference Include="..\..\worlds\generator\Worlds.Generator.csproj">
+			<OutputItemType>Analyzer</OutputItemType>
+			<ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+		</ProjectReference>
 	</ItemGroup>
 
 </Project>
