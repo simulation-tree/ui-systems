@@ -161,7 +161,7 @@ namespace UI.Systems
                                     uint length = end - start;
                                     if (length > 0)
                                     {
-                                        clipboard.Text = textLabel.Text.Slice(start, length).ToString();
+                                        clipboard.Text = textLabel.ProcessedText.Slice(start, length).ToString();
                                         if (pressedCharacters.Contains('x'))
                                         {
                                             RemoveSelection(textLabel, component.validation, ref selection);
@@ -177,7 +177,7 @@ namespace UI.Systems
                                 }
                                 else if (pressedCharacters.Contains('a'))
                                 {
-                                    selection = new(0, textLabel.Text.Length, textLabel.Text.Length);
+                                    selection = new(0, textLabel.ProcessedText.Length, textLabel.ProcessedText.Length);
                                 }
                             }
 
@@ -277,8 +277,8 @@ namespace UI.Systems
         private static void InsertText(Label textLabel, string clipboardText, ref TextSelection selection)
         {
             uint clipboardLength = (uint)clipboardText.Length;
-            USpan<char> newText = stackalloc char[(int)(textLabel.Text.Length + clipboardLength)];
-            USpan<char> text = textLabel.Text;
+            USpan<char> newText = stackalloc char[(int)(textLabel.ProcessedText.Length + clipboardLength)];
+            USpan<char> text = textLabel.ProcessedText;
             uint insertIndex = selection.index;
             if (selection.start != selection.end)
             {
@@ -302,7 +302,7 @@ namespace UI.Systems
             pointerPosition.Y -= worldPosition.Y;
 
             Label textLabel = textField.TextLabel;
-            USpan<char> text = textLabel.Text;
+            USpan<char> text = textLabel.ProcessedText;
             USpan<char> tempText = stackalloc char[(int)(text.Length + 1)];
             text.CopyTo(tempText);
             tempText[text.Length] = ' ';
@@ -334,7 +334,7 @@ namespace UI.Systems
         private static void UpdateCursorToMatchPosition(World world, Label textLabel, uint cursorEntity, ref TextSelection selection)
         {
             Font font = textLabel.Font;
-            USpan<char> text = textLabel.Text;
+            USpan<char> text = textLabel.ProcessedText;
 
             uint index = Math.Min(selection.index, text.Length);
 
@@ -379,7 +379,7 @@ namespace UI.Systems
                 //unique mesh per highlight
                 Vector2 fontSize = textLabel.Size;
                 Font font = textLabel.Font;
-                USpan<char> text = textLabel.Text;
+                USpan<char> text = textLabel.ProcessedText;
                 Vector2 offset = new(4f, -4f);
                 Vector2 padding = new(2f, 2f);
                 ref IsRenderer renderer = ref highlightEntity.GetComponent<IsRenderer>();
@@ -567,7 +567,7 @@ namespace UI.Systems
 
         private static void HandleCharacter(World world, Label textLabel, TextValidation validation, char character, PressedCharacters pressedCharacters, ref TextSelection selection)
         {
-            USpan<char> text = textLabel.Text;
+            USpan<char> text = textLabel.ProcessedText;
             Font font = textLabel.Font;
             Vector2 fontSize = textLabel.Size;
             uint start = Math.Min(selection.start, selection.end);
@@ -818,7 +818,7 @@ namespace UI.Systems
                 if (length > 0)
                 {
                     RemoveSelection(textLabel, validation, ref selection);
-                    text = textLabel.Text;
+                    text = textLabel.ProcessedText;
                 }
 
                 //write char
@@ -947,7 +947,7 @@ namespace UI.Systems
             uint start = Math.Min(range.start, range.end);
             uint end = Math.Max(range.start, range.end);
             uint length = end - start;
-            USpan<char> text = textLabel.Text;
+            USpan<char> text = textLabel.ProcessedText;
             USpan<char> newText = stackalloc char[(int)(text.Length - length)];
 
             if (start > 0)

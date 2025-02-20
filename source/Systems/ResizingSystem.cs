@@ -6,6 +6,8 @@ using System;
 using System.Numerics;
 using Transforms.Components;
 using Worlds;
+using System.Text;
+using Unmanaged;
 
 namespace UI.Systems
 {
@@ -40,14 +42,35 @@ namespace UI.Systems
 
         void ISystem.Update(in SystemContainer systemContainer, in World world, in TimeSpan delta)
         {
-            ComponentQuery<IsPointer> pointerQuery = new(world);
-            pointerQuery.ExcludeDisabled(true);
-            foreach (var p in pointerQuery)
+            ComponentType pointerType = world.Schema.GetComponent<IsPointer>();
+            ComponentType resizableType = world.Schema.GetComponent<IsResizable>();
+            ComponentType positionType = world.Schema.GetComponent<Position>();
+            ComponentType scaleType = world.Schema.GetComponent<Scale>();
+            const int PointerCapacity = 16;
+            USpan<uint> pointerEntities = stackalloc uint[PointerCapacity];
+            USpan<IsPointer> pointerComponents = stackalloc IsPointer[PointerCapacity];
+            uint pointerEntityCount = 0;
+            foreach (Chunk chunk in world.Chunks)
             {
-                Entity entity = new(world, p.entity);
-                if (!lastPressedPointers.ContainsKey(entity))
+                Definition definition = chunk.Definition;
+                if (definition.Contains(pointerType) && !definition.Contains(TagType.Disabled))
                 {
-                    lastPressedPointers.Add(entity, p.component1.HasPrimaryIntent);
+                    USpan<uint> entities = chunk.Entities;
+                    USpan<IsPointer> components = chunk.GetComponents<IsPointer>(pointerType);
+                    for (uint i = 0; i < entities.Length; i++)
+                    {
+                        Entity entity = new(world, entities[i]);
+                        if (!lastPressedPointers.ContainsKey(entity))
+                        {
+                            ref IsPointer pointer = ref components[i];
+                            lastPressedPointers.Add(entity, pointer.HasPrimaryIntent);
+                        }
+                    }
+
+                    //todo: this will fail if there are more than capacity
+                    entities.CopyTo(pointerEntities.Slice(pointerEntityCount));
+                    components.CopyTo(pointerComponents.Slice(pointerEntityCount));
+                    pointerEntityCount += entities.Length;
                 }
             }
 
@@ -59,13 +82,14 @@ namespace UI.Systems
                 {
                     Resizable resizable = new Entity(world, r.entity).As<Resizable>();
                     LayerMask resizableMask = r.component1.selectionMask;
-                    foreach (var p in pointerQuery)
+                    for (uint p = 0; p < pointerEntityCount; p++)
                     {
-                        ref IsPointer pointer = ref p.component1;
+                        ref IsPointer pointer = ref pointerComponents[p];
                         LayerMask pointerSelectionMask = pointer.selectionMask;
                         if (pointerSelectionMask.ContainsAll(resizableMask))
                         {
-                            if (pointer.HasPrimaryIntent && !lastPressedPointers[new(world, p.entity)])
+                            uint pointerEntity = pointerEntities[p];
+                            if (pointer.HasPrimaryIntent && !lastPressedPointers[new(world, pointerEntity)])
                             {
                                 Vector2 pointerPosition = pointer.position;
                                 IsResizable.EdgeMask boundary = resizable.GetBoundary(pointerPosition);
@@ -73,7 +97,7 @@ namespace UI.Systems
                                 {
                                     resizingEntity = resizable;
                                     resizeBoundary = boundary;
-                                    activePointer = new Entity(world, p.entity).As<Pointer>();
+                                    activePointer = new Entity(world, pointerEntity).As<Pointer>();
                                     lastPointerPosition = pointerPosition;
                                     break;
                                 }
@@ -83,9 +107,10 @@ namespace UI.Systems
                 }
             }
 
-            foreach (var p in pointerQuery)
+            for (uint p = 0; p < pointerEntityCount; p++)
             {
-                lastPressedPointers[new(world, p.entity)] = p.component1.HasPrimaryIntent;
+                ref IsPointer pointer = ref pointerComponents[p];
+                lastPressedPointers[new(world, pointerEntities[p])] = pointer.HasPrimaryIntent;
             }
 
             if (resizingEntity != default)

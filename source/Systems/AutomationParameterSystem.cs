@@ -52,7 +52,10 @@ namespace UI.Systems
                 if (pointer.hoveringOverReference != default)
                 {
                     uint hoveringOverEntity = world.GetReference(p.entity, pointer.hoveringOverReference);
-                    selectedEntities.Add(new(world, hoveringOverEntity));
+                    if (world.ContainsEntity(hoveringOverEntity))
+                    {
+                        selectedEntities.Add(new(world, hoveringOverEntity));
+                    }
                 }
             }
         }

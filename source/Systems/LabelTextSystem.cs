@@ -2,6 +2,7 @@
 using Rendering.Components;
 using Simulation;
 using System;
+using System.Diagnostics;
 using UI.Components;
 using UI.Functions;
 using Unmanaged;
@@ -80,18 +81,22 @@ namespace UI.Systems
                             }
 
                             uint textMeshEntity = world.GetReference(entity, textMeshReference);
-                            uint arrayLength = world.GetArrayLength<TextCharacter>(textMeshEntity);
-                            bool lengthChanged = false;
-                            if (arrayLength != result.Length)
+                            USpan<char> targetText = world.GetArray<TextCharacter>(textMeshEntity).As<char>();
+                            bool textIsDifferent = false;
+                            if (targetText.Length != result.Length)
                             {
                                 //make sure destination array matches length
-                                world.ResizeArray<TextCharacter>(textMeshEntity, result.Length);
-                                lengthChanged = true;
+                                targetText = world.ResizeArray<TextCharacter>(textMeshEntity, result.Length).As<char>();
+                                textIsDifferent = true;
+                            }
+                            else
+                            {
+                                textIsDifferent = !targetText.SequenceEqual(result.AsSpan());
                             }
 
-                            USpan<char> targetText = world.GetArray<TextCharacter>(textMeshEntity).As<char>();
-                            if (lengthChanged || !targetText.SequenceEqual(result.AsSpan()))
+                            if (textIsDifferent)
                             {
+                                Trace.WriteLine($"Text `{entity}` = `{result.ToString()}`");
                                 ref IsTextMeshRequest request = ref world.GetComponent<IsTextMeshRequest>(textMeshEntity);
                                 request.loaded = false;
                                 result.CopyTo(targetText);
