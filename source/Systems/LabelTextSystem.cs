@@ -2,7 +2,6 @@
 using Rendering.Components;
 using Simulation;
 using System;
-using System.Diagnostics;
 using UI.Components;
 using UI.Functions;
 using Unmanaged;
@@ -96,7 +95,6 @@ namespace UI.Systems
 
                             if (textIsDifferent)
                             {
-                                Trace.WriteLine($"Text `{entity}` = `{result.ToString()}`");
                                 ref IsTextMeshRequest request = ref world.GetComponent<IsTextMeshRequest>(textMeshEntity);
                                 request.loaded = false;
                                 result.CopyTo(targetText);
