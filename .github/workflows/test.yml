@@ -28,6 +28,13 @@ jobs:
         with:
           path: ${{ github.event.repository.name }}
             
+      - name: Checkout `worlds`
+        uses: actions/checkout@v4.1.2
+        with:
+          repository: game-simulations/worlds
+          token: ${{ secrets.PAT }}
+          path: worlds
+      
       - name: Checkout `ui`
         uses: actions/checkout@v4.1.2
         with:
@@ -55,13 +62,6 @@ jobs:
           repository: game-simulations/simulation
           token: ${{ secrets.PAT }}
           path: simulation
-      
-      - name: Checkout `worlds`
-        uses: actions/checkout@v4.1.2
-        with:
-          repository: game-simulations/worlds
-          token: ${{ secrets.PAT }}
-          path: worlds
       
       - name: Checkout `types`
         uses: actions/checkout@v4.1.2
