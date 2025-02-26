@@ -87,14 +87,14 @@ namespace UI.Systems
                 ThrowIfComponentIsMissing(world, entity, rightType);
                 ThrowIfComponentSizesDontMatch(leftType, rightType);
                 ThrowIfComponentSizesDontMatch(leftType, outputType);
-                if (!world.ContainsComponent(entity, outputType))
+                if (!world.ContainsComponent(entity, outputType.ComponentType))
                 {
-                    world.AddComponent(entity, outputType);
+                    world.AddComponent(entity, outputType.ComponentType);
                 }
 
-                USpan<byte> leftBytes = world.GetComponentBytes(entity, leftType);
-                USpan<byte> rightBytes = world.GetComponentBytes(entity, rightType);
-                USpan<byte> outputBytes = world.GetComponentBytes(entity, outputType);
+                USpan<byte> leftBytes = world.GetComponentBytes(entity, leftType.ComponentType);
+                USpan<byte> rightBytes = world.GetComponentBytes(entity, rightType.ComponentType);
+                USpan<byte> outputBytes = world.GetComponentBytes(entity, outputType.ComponentType);
                 ushort componentSize = leftType.size;
                 byte partCount = mix.vectorLength;
                 uint partSize = (uint)(componentSize / partCount);
@@ -463,9 +463,9 @@ namespace UI.Systems
         }
 
         [Conditional("DEBUG")]
-        private void ThrowIfComponentIsMissing(World world, uint entity, ComponentType componentType)
+        private void ThrowIfComponentIsMissing(World world, uint entity, DataType componentType)
         {
-            if (!world.Contains(entity, componentType))
+            if (!world.ContainsComponent(entity, componentType.ComponentType))
             {
                 throw new Exception($"Entity `{entity}` is missing expected component `{componentType.ToString(world.Schema)}`");
             }
