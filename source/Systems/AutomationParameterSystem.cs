@@ -1,6 +1,7 @@
 ﻿using Automations;
 using Automations.Components;
 using Collections;
+using Collections.Generic;
 using Simulation;
 using System;
 using UI.Components;

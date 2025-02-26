@@ -1,4 +1,4 @@
-﻿using Collections;
+﻿using Collections.Generic;
 using Rendering.Components;
 using Simulation;
 using System;

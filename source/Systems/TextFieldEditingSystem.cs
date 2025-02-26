@@ -1,5 +1,6 @@
 ﻿using Clipboard;
 using Collections;
+using Collections.Generic;
 using Fonts;
 using Meshes;
 using Rendering.Components;
@@ -490,7 +491,7 @@ namespace UI.Systems
         {
             for (uint i = text.Length - 1; i != uint.MaxValue; i--)
             {
-                if (Array.IndexOf(controlCharacters, text[i]) != -1)
+                if (System.Array.IndexOf(controlCharacters, text[i]) != -1)
                 {
                     index = i;
                     return true;
@@ -505,7 +506,7 @@ namespace UI.Systems
         {
             for (uint i = 0; i < text.Length; i++)
             {
-                if (Array.IndexOf(controlCharacters, text[i]) != -1)
+                if (System.Array.IndexOf(controlCharacters, text[i]) != -1)
                 {
                     index = i;
                     return true;
