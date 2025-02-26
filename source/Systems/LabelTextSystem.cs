@@ -72,7 +72,7 @@ namespace UI.Systems
                         if (textMeshReference != default)
                         {
                             uint entity = entities[i];
-                            USpan<char> originalText = world.GetArray<LabelCharacter>(entity).As<char>();
+                            USpan<char> originalText = world.GetArray<LabelCharacter>(entity).AsSpan().As<char>();
                             result.CopyFrom(originalText);
                             foreach (TryProcessLabel token in processors)
                             {
@@ -80,24 +80,24 @@ namespace UI.Systems
                             }
 
                             uint textMeshEntity = world.GetReference(entity, textMeshReference);
-                            USpan<char> targetText = world.GetArray<TextCharacter>(textMeshEntity).As<char>();
+                            Array<TextCharacter> targetText = world.GetArray<TextCharacter>(textMeshEntity);
                             bool textIsDifferent = false;
                             if (targetText.Length != result.Length)
                             {
                                 //make sure destination array matches length
-                                targetText = world.ResizeArray<TextCharacter>(textMeshEntity, result.Length).As<char>();
+                                targetText.Length = result.Length;
                                 textIsDifferent = true;
                             }
                             else
                             {
-                                textIsDifferent = !targetText.SequenceEqual(result.AsSpan());
+                                textIsDifferent = !targetText.AsSpan().As<char>().SequenceEqual(result.AsSpan());
                             }
 
                             if (textIsDifferent)
                             {
                                 ref IsTextMeshRequest request = ref world.GetComponent<IsTextMeshRequest>(textMeshEntity);
                                 request.loaded = false;
-                                result.CopyTo(targetText);
+                                result.CopyTo(targetText.AsSpan().As<char>());
                             }
                         }
                     }
