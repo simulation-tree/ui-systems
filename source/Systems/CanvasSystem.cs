@@ -23,13 +23,13 @@ namespace UI.Systems
             USpan<uint> destroyedCanvases = stackalloc uint[64];
             uint destroyedCanvasCount = 0;
 
-            ComponentType canvasType = world.Schema.GetComponent<IsCanvas>();
-            ComponentType positionType = world.Schema.GetComponent<Position>();
-            ComponentType scaleType = world.Schema.GetComponent<Scale>();
+            ComponentType canvasType = world.Schema.GetComponentType<IsCanvas>();
+            ComponentType positionType = world.Schema.GetComponentType<Position>();
+            ComponentType scaleType = world.Schema.GetComponentType<Scale>();
             foreach (Chunk chunk in world.Chunks)
             {
                 Definition definition = chunk.Definition;
-                if (definition.Contains(canvasType) && definition.Contains(positionType) && definition.Contains(scaleType) && !definition.Contains(TagType.Disabled))
+                if (definition.ContainsComponent(canvasType) && definition.ContainsComponent(positionType) && definition.ContainsComponent(scaleType) && !definition.ContainsTag(TagType.Disabled))
                 {
                     USpan<uint> entities = chunk.Entities;
                     USpan<IsCanvas> canvasComponents = chunk.GetComponents<IsCanvas>(canvasType);

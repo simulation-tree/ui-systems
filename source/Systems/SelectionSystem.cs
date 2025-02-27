@@ -47,11 +47,11 @@ namespace UI.Systems
 
         private readonly void Update(World world)
         {
-            ComponentType pointerComponent = world.Schema.GetComponent<IsPointer>();
+            ComponentType pointerComponent = world.Schema.GetComponentType<IsPointer>();
             foreach (Chunk chunk in world.Chunks)
             {
                 Definition definition = chunk.Definition;
-                if (definition.Contains(pointerComponent) && !definition.Contains(TagType.Disabled))
+                if (definition.ContainsComponent(pointerComponent) && !definition.ContainsTag(TagType.Disabled))
                 {
                     USpan<uint> entities = chunk.Entities;
                     USpan<IsPointer> components = chunk.GetComponents<IsPointer>(pointerComponent);
@@ -217,12 +217,12 @@ namespace UI.Systems
         {
             selectableEntities.Clear();
 
-            ComponentType selectableComponent = world.Schema.GetComponent<IsSelectable>();
-            ComponentType ltwComponent = world.Schema.GetComponent<LocalToWorld>();
+            ComponentType selectableComponent = world.Schema.GetComponentType<IsSelectable>();
+            ComponentType ltwComponent = world.Schema.GetComponentType<LocalToWorld>();
             foreach (Chunk chunk in world.Chunks)
             {
                 Definition definition = chunk.Definition;
-                if (definition.Contains(selectableComponent) && definition.Contains(ltwComponent) && !definition.Contains(TagType.Disabled))
+                if (definition.ContainsComponent(selectableComponent) && definition.ContainsComponent(ltwComponent) && !definition.ContainsTag(TagType.Disabled))
                 {
                     USpan<uint> entities = chunk.Entities;
                     USpan<IsSelectable> selectableComponents = chunk.GetComponents<IsSelectable>(selectableComponent);

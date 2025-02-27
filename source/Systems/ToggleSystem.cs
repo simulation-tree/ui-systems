@@ -47,11 +47,11 @@ namespace UI.Systems
         {
             FindToggleEntities(world);
 
-            ComponentType pointerComponent = world.Schema.GetComponent<IsPointer>();
+            ComponentType pointerComponent = world.Schema.GetComponentType<IsPointer>();
             foreach (Chunk chunk in world.Chunks)
             {
                 Definition definition = chunk.Definition;
-                if (definition.Contains(pointerComponent) && !definition.Contains(TagType.Disabled))
+                if (definition.ContainsComponent(pointerComponent) && !definition.ContainsTag(TagType.Disabled))
                 {
                     USpan<uint> entities = chunk.Entities;
                     USpan<IsPointer> components = chunk.GetComponents<IsPointer>(pointerComponent);
@@ -101,11 +101,11 @@ namespace UI.Systems
         private readonly void FindToggleEntities(World world)
         {
             toggleEntities.Clear();
-            ComponentType toggleComponent = world.Schema.GetComponent<IsToggle>();
+            ComponentType toggleComponent = world.Schema.GetComponentType<IsToggle>();
             foreach (Chunk chunk in world.Chunks)
             {
                 Definition definition = chunk.Definition;
-                if (definition.Contains(toggleComponent) && !definition.Contains(TagType.Disabled))
+                if (definition.ContainsComponent(toggleComponent) && !definition.ContainsTag(TagType.Disabled))
                 {
                     USpan<uint> entities = chunk.Entities;
                     toggleEntities.AddRange(entities);

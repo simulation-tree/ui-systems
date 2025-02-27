@@ -39,15 +39,15 @@ namespace UI.Systems
 
         void ISystem.Update(in SystemContainer systemContainer, in World world, in TimeSpan delta)
         {
-            ComponentType textRendererType = world.Schema.GetComponent<IsTextRenderer>();
-            ComponentType processorType = world.Schema.GetComponent<IsLabelProcessor>();
-            TagType labelTag = world.Schema.GetTag<IsLabel>();
-            ArrayElementType characterArrayType = world.Schema.GetArrayElement<LabelCharacter>();
+            ComponentType textRendererType = world.Schema.GetComponentType<IsTextRenderer>();
+            ComponentType processorType = world.Schema.GetComponentType<IsLabelProcessor>();
+            TagType labelTag = world.Schema.GetTagType<IsLabel>();
+            ArrayElementType characterArrayType = world.Schema.GetArrayType<LabelCharacter>();
 
             processors.Clear();
             foreach (Chunk chunk in world.Chunks)
             {
-                if (chunk.Definition.Contains(processorType))
+                if (chunk.Definition.ContainsComponent(processorType))
                 {
                     USpan<IsLabelProcessor> components = chunk.GetComponents<IsLabelProcessor>(processorType);
                     for (uint i = 0; i < components.Length; i++)
@@ -61,7 +61,7 @@ namespace UI.Systems
             foreach (Chunk chunk in world.Chunks)
             {
                 Definition definition = chunk.Definition;
-                if (definition.Contains(labelTag) && definition.Contains(textRendererType) && definition.Contains(characterArrayType) && !definition.Contains(TagType.Disabled))
+                if (definition.ContainsTag(labelTag) && definition.ContainsComponent(textRendererType) && definition.ContainsArray(characterArrayType) && !definition.ContainsTag(TagType.Disabled))
                 {
                     USpan<uint> entities = chunk.Entities;
                     USpan<IsTextRenderer> components = chunk.GetComponents<IsTextRenderer>(textRendererType);

@@ -34,11 +34,11 @@ namespace UI.Systems
         void ISystem.Update(in SystemContainer systemContainer, in World world, in TimeSpan delta)
         {
             //find new entities
-            ComponentType triggerComponent = world.Schema.GetComponent<IsTrigger>();
+            ComponentType triggerComponent = world.Schema.GetComponentType<IsTrigger>();
             foreach (Chunk chunk in world.Chunks)
             {
                 Definition definition = chunk.Definition;
-                if (definition.Contains(triggerComponent) && !definition.Contains(TagType.Disabled))
+                if (definition.ContainsComponent(triggerComponent) && !definition.ContainsTag(TagType.Disabled))
                 {
                     USpan<uint> entities = chunk.Entities;
                     USpan<IsTrigger> triggers = chunk.GetComponents<IsTrigger>(triggerComponent);

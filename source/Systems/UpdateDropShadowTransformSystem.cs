@@ -37,10 +37,10 @@ namespace UI.Systems
         void ISystem.Update(in SystemContainer systemContainer, in World world, in TimeSpan delta)
         {
             //destroy drop shadows if their foreground doesnt exist anymore
-            ComponentType dropShadowComponent = world.Schema.GetComponent<IsDropShadow>();
+            ComponentType dropShadowComponent = world.Schema.GetComponentType<IsDropShadow>();
             foreach (Chunk chunk in world.Chunks)
             {
-                if (chunk.Definition.Contains(dropShadowComponent))
+                if (chunk.Definition.ContainsComponent(dropShadowComponent))
                 {
                     USpan<uint> entities = chunk.Entities;
                     USpan<IsDropShadow> components = chunk.GetComponents<IsDropShadow>(dropShadowComponent);
@@ -70,11 +70,11 @@ namespace UI.Systems
             //add scale component to drop shadows that dont have it yet
             //todo: should check if the entity has been destroyed since previous instructions
             bool selectedAny = false;
-            ComponentType scaleComponent = world.Schema.GetComponent<Scale>();
+            ComponentType scaleComponent = world.Schema.GetComponentType<Scale>();
             foreach (Chunk chunk in world.Chunks)
             {
                 Definition definition = chunk.Definition;
-                if (definition.Contains(dropShadowComponent) && !definition.Contains(scaleComponent))
+                if (definition.ContainsComponent(dropShadowComponent) && !definition.ContainsComponent(scaleComponent))
                 {
                     USpan<uint> entities = chunk.Entities;
                     operation.SelectEntities(entities);
@@ -95,11 +95,11 @@ namespace UI.Systems
 
             //do the thing
             const float ShadowDistance = 30f;
-            ComponentType positionComponent = world.Schema.GetComponent<Position>();
+            ComponentType positionComponent = world.Schema.GetComponentType<Position>();
             foreach (Chunk chunk in world.Chunks)
             {
                 Definition definition = chunk.Definition;
-                if (definition.Contains(dropShadowComponent) && definition.Contains(scaleComponent) && definition.Contains(positionComponent))
+                if (definition.ContainsComponent(dropShadowComponent) && definition.ContainsComponent(scaleComponent) && definition.ContainsComponent(positionComponent))
                 {
                     USpan<uint> entities = chunk.Entities;
                     USpan<IsDropShadow> dropShadowComponents = chunk.GetComponents<IsDropShadow>(dropShadowComponent);

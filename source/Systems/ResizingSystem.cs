@@ -42,10 +42,10 @@ namespace UI.Systems
 
         void ISystem.Update(in SystemContainer systemContainer, in World world, in TimeSpan delta)
         {
-            ComponentType pointerType = world.Schema.GetComponent<IsPointer>();
-            ComponentType resizableType = world.Schema.GetComponent<IsResizable>();
-            ComponentType positionType = world.Schema.GetComponent<Position>();
-            ComponentType scaleType = world.Schema.GetComponent<Scale>();
+            ComponentType pointerType = world.Schema.GetComponentType<IsPointer>();
+            ComponentType resizableType = world.Schema.GetComponentType<IsResizable>();
+            ComponentType positionType = world.Schema.GetComponentType<Position>();
+            ComponentType scaleType = world.Schema.GetComponentType<Scale>();
             const int PointerCapacity = 16;
             USpan<uint> pointerEntities = stackalloc uint[PointerCapacity];
             USpan<IsPointer> pointerComponents = stackalloc IsPointer[PointerCapacity];
@@ -53,7 +53,7 @@ namespace UI.Systems
             foreach (Chunk chunk in world.Chunks)
             {
                 Definition definition = chunk.Definition;
-                if (definition.Contains(pointerType) && !definition.Contains(TagType.Disabled))
+                if (definition.ContainsComponent(pointerType) && !definition.ContainsTag(TagType.Disabled))
                 {
                     USpan<uint> entities = chunk.Entities;
                     USpan<IsPointer> components = chunk.GetComponents<IsPointer>(pointerType);
