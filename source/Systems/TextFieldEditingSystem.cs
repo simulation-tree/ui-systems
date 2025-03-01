@@ -286,7 +286,7 @@ namespace UI.Systems
                 insertIndex = Math.Min(selection.start, selection.end);
             }
 
-            text.Slice(0, insertIndex).CopyTo(newText);
+            text.GetSpan(insertIndex).CopyTo(newText);
             clipboardText.AsSpan().CopyTo(newText.Slice(insertIndex));
             text.Slice(insertIndex).CopyTo(newText.Slice(insertIndex + clipboardLength));
             textLabel.SetText(newText);
@@ -339,7 +339,7 @@ namespace UI.Systems
 
             uint index = Math.Min(selection.index, text.Length);
 
-            USpan<char> textToCursor = text.Slice(0, index);
+            USpan<char> textToCursor = text.GetSpan(index);
             Vector2 totalSize = font.CalulcateSize(textToCursor) * textLabel.Size;
             Vector3 cursorSize = world.GetComponent<Scale>(cursorEntity).value;
 
@@ -413,21 +413,21 @@ namespace UI.Systems
                     if (start >= lineStart && end <= lineEnd)
                     {
                         //selection starts and ends on this line
-                        USpan<char> textToStart = line.Slice(0, start - lineStart);
-                        USpan<char> textToEnd = line.Slice(0, end - lineStart);
+                        USpan<char> textToStart = line.GetSpan(start - lineStart);
+                        USpan<char> textToEnd = line.GetSpan(end - lineStart);
                         minPosition = font.CalulcateSize(textToStart) * fontSize;
                         maxPosition = font.CalulcateSize(textToEnd) * fontSize;
                     }
                     else if (end >= lineStart && end <= lineEnd)
                     {
                         //selection starts on previous line and ends on this one
-                        USpan<char> textToEnd = line.Slice(0, end - lineStart);
+                        USpan<char> textToEnd = line.GetSpan(end - lineStart);
                         maxPosition = font.CalulcateSize(textToEnd) * fontSize;
                     }
                     else if (start >= lineStart && start <= lineEnd)
                     {
                         //selection starts on this line, and ends later
-                        USpan<char> textToStart = line.Slice(0, start - lineStart);
+                        USpan<char> textToStart = line.GetSpan(start - lineStart);
                         minPosition = font.CalulcateSize(textToStart) * fontSize;
                         maxPosition = font.CalulcateSize(line) * fontSize;
                     }
@@ -479,11 +479,11 @@ namespace UI.Systems
                 USpan<Vector2> uvs = highlightMesh.ResizeUVs(faceCount * 4);
                 USpan<Vector3> normals = highlightMesh.ResizeNormals(faceCount * 4);
                 USpan<Vector4> colors = highlightMesh.ResizeColors(faceCount * 4);
-                verticesList.AsSpan().Slice(0, faceCount * 4).CopyTo(positions);
-                indicesList.AsSpan().Slice(0, faceCount * 6).CopyTo(indices);
-                uvList.AsSpan().Slice(0, faceCount * 4).CopyTo(uvs);
-                normalsList.AsSpan().Slice(0, faceCount * 4).CopyTo(normals);
-                colorsList.AsSpan().Slice(0, faceCount * 4).CopyTo(colors);
+                verticesList.AsSpan().GetSpan(faceCount * 4).CopyTo(positions);
+                indicesList.AsSpan().GetSpan(faceCount * 6).CopyTo(indices);
+                uvList.AsSpan().GetSpan(faceCount * 4).CopyTo(uvs);
+                normalsList.AsSpan().GetSpan(faceCount * 4).CopyTo(normals);
+                colorsList.AsSpan().GetSpan(faceCount * 4).CopyTo(colors);
             }
         }
 
@@ -647,7 +647,7 @@ namespace UI.Systems
                             selection.start = selection.index;
                         }
 
-                        if (TryGetPreviousIndex(text.Slice(0, selection.index - 1), out uint index))
+                        if (TryGetPreviousIndex(text.GetSpan(selection.index - 1), out uint index))
                         {
                             selection.index = index + 1;
                         }
@@ -793,7 +793,7 @@ namespace UI.Systems
                     {
                         //remove last char
                         USpan<char> newText = stackalloc char[(int)(text.Length - 1)];
-                        text.Slice(0, text.Length - 1).CopyTo(newText);
+                        text.GetSpan(text.Length - 1).CopyTo(newText);
                         SetText(textLabel, text, newText, validation);
                     }
                     else if (text.Length == 1)
@@ -805,7 +805,7 @@ namespace UI.Systems
                         //remove char at cursor
                         USpan<char> newText = stackalloc char[(int)(text.Length - 1)];
                         //copy first part
-                        text.Slice(0, selection.index - 1).CopyTo(newText);
+                        text.GetSpan(selection.index - 1).CopyTo(newText);
                         //copy remaining
                         text.Slice(selection.index).CopyTo(newText.Slice(selection.index - 1));
                         SetText(textLabel, text, newText, validation);
@@ -919,7 +919,7 @@ namespace UI.Systems
                 //insert character into cursor position
                 USpan<char> newText = stackalloc char[(int)(text.Length + 1)];
                 uint index = Math.Min(selection.index, text.Length);
-                USpan<char> firstPart = text.Slice(0, index);
+                USpan<char> firstPart = text.GetSpan(index);
                 firstPart.CopyTo(newText);
                 newText[index] = character;
                 if (index + 1 < newText.Length)
@@ -953,7 +953,7 @@ namespace UI.Systems
 
             if (start > 0)
             {
-                text.Slice(0, start).CopyTo(newText);
+                text.GetSpan(start).CopyTo(newText);
             }
 
             if (end < text.Length)

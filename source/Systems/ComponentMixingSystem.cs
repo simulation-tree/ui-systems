@@ -87,14 +87,15 @@ namespace UI.Systems
                 ThrowIfComponentIsMissing(world, entity, rightType);
                 ThrowIfComponentSizesDontMatch(leftType, rightType);
                 ThrowIfComponentSizesDontMatch(leftType, outputType);
-                if (!world.ContainsComponent(entity, outputType.ComponentType))
+                uint componentType = outputType.ComponentType.index;
+                if (!world.ContainsComponent(entity, componentType))
                 {
-                    world.AddComponent(entity, outputType.ComponentType);
+                    world.AddComponent(entity, componentType);
                 }
 
                 USpan<byte> leftBytes = world.GetComponentBytes(entity, leftType.ComponentType);
                 USpan<byte> rightBytes = world.GetComponentBytes(entity, rightType.ComponentType);
-                USpan<byte> outputBytes = world.GetComponentBytes(entity, outputType.ComponentType);
+                USpan<byte> outputBytes = world.GetComponentBytes(entity, componentType);
                 ushort componentSize = leftType.size;
                 byte partCount = mix.vectorLength;
                 uint partSize = (uint)(componentSize / partCount);

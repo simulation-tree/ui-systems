@@ -80,7 +80,7 @@ namespace UI.Systems
                             }
 
                             uint textMeshEntity = world.GetReference(entity, textMeshReference);
-                            Array<TextCharacter> targetText = world.GetArray<TextCharacter>(textMeshEntity);
+                            Values<TextCharacter> targetText = world.GetArray<TextCharacter>(textMeshEntity);
                             bool textIsDifferent = false;
                             if (targetText.Length != result.Length)
                             {

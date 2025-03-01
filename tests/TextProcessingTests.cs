@@ -51,7 +51,7 @@ namespace UI.Tests
             {
                 USpan<char> newText = stackalloc char[(int)input.OriginalText.Length + 32];
                 uint newLength = Text.Replace(input.OriginalText, NounToken, ReplacementNoun, newText);
-                input.SetResult(newText.Slice(0, newLength));
+                input.SetResult(newText.GetSpan(newLength));
                 return true;
             }
 
@@ -65,7 +65,7 @@ namespace UI.Tests
             {
                 USpan<char> newText = stackalloc char[(int)input.OriginalText.Length + 32];
                 uint newLength = Text.Replace(input.OriginalText, VerbToken, ReplacementVerb, newText);
-                input.SetResult(newText.Slice(0, newLength));
+                input.SetResult(newText.GetSpan(newLength));
                 return true;
             }
 
