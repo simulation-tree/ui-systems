@@ -474,16 +474,16 @@ namespace UI.Systems
                 }
 
                 Mesh highlightMesh = new Entity(world, meshEntity).As<Mesh>();
-                USpan<Vector3> positions = highlightMesh.ResizePositions(faceCount * 4);
-                USpan<uint> indices = highlightMesh.ResizeIndices(faceCount * 6);
-                USpan<Vector2> uvs = highlightMesh.ResizeUVs(faceCount * 4);
-                USpan<Vector3> normals = highlightMesh.ResizeNormals(faceCount * 4);
-                USpan<Vector4> colors = highlightMesh.ResizeColors(faceCount * 4);
-                verticesList.AsSpan().GetSpan(faceCount * 4).CopyTo(positions);
-                indicesList.AsSpan().GetSpan(faceCount * 6).CopyTo(indices);
-                uvList.AsSpan().GetSpan(faceCount * 4).CopyTo(uvs);
-                normalsList.AsSpan().GetSpan(faceCount * 4).CopyTo(normals);
-                colorsList.AsSpan().GetSpan(faceCount * 4).CopyTo(colors);
+                Mesh.Collection<Vector3> positions = highlightMesh.Positions;
+                Mesh.Collection<uint> indices = highlightMesh.Indices;
+                Mesh.Collection<Vector2> uvs = highlightMesh.UVs;
+                Mesh.Collection<Vector3> normals = highlightMesh.Normals;
+                Mesh.Collection<Vector4> colors = highlightMesh.Colors;
+                positions.CopyFrom(verticesList.GetSpan(faceCount * 4));
+                indices.CopyFrom(indicesList.GetSpan(faceCount * 6));
+                uvs.CopyFrom(uvList.GetSpan(faceCount * 4));
+                normals.CopyFrom(normalsList.GetSpan(faceCount * 4));
+                colors.CopyFrom(colorsList.GetSpan(faceCount * 4));
             }
         }
 
