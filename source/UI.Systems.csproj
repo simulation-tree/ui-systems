@@ -1,32 +1,33 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
-	<PropertyGroup>
-		<TargetFramework>net9.0</TargetFramework>
-		<ImplicitUsings>disable</ImplicitUsings>
-		<Nullable>enable</Nullable>
-		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-		<IsAotCompatible>True</IsAotCompatible>
-		<IsTrimmable>True</IsTrimmable>
-		<TreatWarningsAsErrors>True</TreatWarningsAsErrors>
-		<Title>UI Systems</Title>
-		<Authors>popcron</Authors>
-		<Company>game-simulations</Company>
-		<RepositoryUrl>https://github.com/game-simulations/ui-systems</RepositoryUrl>
-	</PropertyGroup>
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <ImplicitUsings>disable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+        <IsAotCompatible>True</IsAotCompatible>
+        <IsTrimmable>True</IsTrimmable>
+        <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
+        <Title>UI Systems</Title>
+        <Authors>popcron</Authors>
+        <Company>game-simulations</Company>
+        <RepositoryUrl>https://github.com/game-simulations/ui-systems</RepositoryUrl>
+        <PackageId/>
+    </PropertyGroup>
 
-	<ItemGroup>
-		<ProjectReference Include="..\..\simulation\core\Simulation.Core.csproj" />
-		<ProjectReference Include="..\..\simulation\generator\Simulation.Generator.csproj">
-			<OutputItemType>Analyzer</OutputItemType>
-			<ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-		</ProjectReference>
-		<ProjectReference Include="..\..\transforms\source\Transforms.csproj" />
-		<ProjectReference Include="..\..\clipboard\source\Clipboard.csproj" />
-		<ProjectReference Include="..\..\ui\source\UI.csproj" />
-		<ProjectReference Include="..\..\worlds\generator\Worlds.Generator.csproj">
-			<OutputItemType>Analyzer</OutputItemType>
-			<ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-		</ProjectReference>
-	</ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\..\simulation\core\Simulation.Core.csproj"/>
+        <ProjectReference Include="..\..\simulation\generator\Simulation.Generator.csproj">
+            <OutputItemType>Analyzer</OutputItemType>
+            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+        </ProjectReference>
+        <ProjectReference Include="..\..\transforms\source\Transforms.csproj"/>
+        <ProjectReference Include="..\..\clipboard\source\Clipboard.csproj"/>
+        <ProjectReference Include="..\..\ui\source\UI.csproj"/>
+        <ProjectReference Include="..\..\worlds\generator\Worlds.Generator.csproj">
+            <OutputItemType>Analyzer</OutputItemType>
+            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+        </ProjectReference>
+    </ItemGroup>
 
 </Project>
