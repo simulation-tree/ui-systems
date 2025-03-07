@@ -24,7 +24,7 @@ namespace UI.Systems
 
         private readonly Dictionary<Entity, TextSelection> lastSelections;
         private PressedCharacters lastPressedCharacters;
-        private FixedString currentCharacters;
+        private ASCIIText256 currentCharacters;
         private DateTime nextPress;
         private bool lastAnyPointerPressed;
         private readonly Library clipboard;
