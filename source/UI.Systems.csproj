@@ -10,8 +10,8 @@
         <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
         <Title>UI Systems</Title>
         <Authors>popcron</Authors>
-        <Company>game-simulations</Company>
-        <RepositoryUrl>https://github.com/game-simulations/ui-systems</RepositoryUrl>
+        <Company>simulation-tree</Company>
+        <RepositoryUrl>https://github.com/simulation-tree/ui-systems</RepositoryUrl>
         <PackageId/>
     </PropertyGroup>
 
