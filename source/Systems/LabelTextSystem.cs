@@ -49,8 +49,8 @@ namespace UI.Systems
             {
                 if (chunk.Definition.ContainsComponent(processorType))
                 {
-                    USpan<IsLabelProcessor> components = chunk.GetComponents<IsLabelProcessor>(processorType);
-                    for (uint i = 0; i < components.Length; i++)
+                    Span<IsLabelProcessor> components = chunk.GetComponents<IsLabelProcessor>(processorType);
+                    for (int i = 0; i < components.Length; i++)
                     {
                         ref IsLabelProcessor processor = ref components[i];
                         processors.Add(processor.function);
@@ -63,16 +63,16 @@ namespace UI.Systems
                 Definition definition = chunk.Definition;
                 if (definition.ContainsTag(labelTag) && definition.ContainsComponent(textRendererType) && definition.ContainsArray(characterArrayType) && !definition.ContainsTag(TagType.Disabled))
                 {
-                    USpan<uint> entities = chunk.Entities;
-                    USpan<IsTextRenderer> components = chunk.GetComponents<IsTextRenderer>(textRendererType);
-                    for (uint i = 0; i < entities.Length; i++)
+                    ReadOnlySpan<uint> entities = chunk.Entities;
+                    Span<IsTextRenderer> components = chunk.GetComponents<IsTextRenderer>(textRendererType);
+                    for (int i = 0; i < entities.Length; i++)
                     {
                         ref IsTextRenderer textRenderer = ref components[i];
                         ref rint textMeshReference = ref textRenderer.textMeshReference;
                         if (textMeshReference != default)
                         {
                             uint entity = entities[i];
-                            USpan<char> originalText = world.GetArray<LabelCharacter>(entity).AsSpan().As<char>();
+                            Span<char> originalText = world.GetArray<LabelCharacter>(entity).AsSpan<char>();
                             result.CopyFrom(originalText);
                             foreach (TryProcessLabel token in processors)
                             {
@@ -90,14 +90,14 @@ namespace UI.Systems
                             }
                             else
                             {
-                                textIsDifferent = !targetText.AsSpan().As<char>().SequenceEqual(result.AsSpan());
+                                textIsDifferent = !targetText.AsSpan<char>().SequenceEqual(result.AsSpan());
                             }
 
                             if (textIsDifferent)
                             {
                                 ref IsTextMeshRequest request = ref world.GetComponent<IsTextMeshRequest>(textMeshEntity);
                                 request.loaded = false;
-                                result.CopyTo(targetText.AsSpan().As<char>());
+                                result.CopyTo(targetText.AsSpan<char>());
                             }
                         }
                     }

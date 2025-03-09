@@ -1,13 +1,11 @@
-﻿using UI.Components;
+﻿using Collections.Generic;
 using Rendering;
 using Simulation;
 using System;
 using System.Numerics;
 using Transforms.Components;
+using UI.Components;
 using Worlds;
-using System.Text;
-using Unmanaged;
-using Collections.Generic;
 
 namespace UI.Systems
 {
@@ -47,17 +45,17 @@ namespace UI.Systems
             ComponentType positionType = world.Schema.GetComponentType<Position>();
             ComponentType scaleType = world.Schema.GetComponentType<Scale>();
             const int PointerCapacity = 16;
-            USpan<uint> pointerEntities = stackalloc uint[PointerCapacity];
-            USpan<IsPointer> pointerComponents = stackalloc IsPointer[PointerCapacity];
-            uint pointerEntityCount = 0;
+            Span<uint> pointerEntities = stackalloc uint[PointerCapacity];
+            Span<IsPointer> pointerComponents = stackalloc IsPointer[PointerCapacity];
+            int pointerEntityCount = 0;
             foreach (Chunk chunk in world.Chunks)
             {
                 Definition definition = chunk.Definition;
                 if (definition.ContainsComponent(pointerType) && !definition.ContainsTag(TagType.Disabled))
                 {
-                    USpan<uint> entities = chunk.Entities;
-                    USpan<IsPointer> components = chunk.GetComponents<IsPointer>(pointerType);
-                    for (uint i = 0; i < entities.Length; i++)
+                    ReadOnlySpan<uint> entities = chunk.Entities;
+                    Span<IsPointer> components = chunk.GetComponents<IsPointer>(pointerType);
+                    for (int i = 0; i < entities.Length; i++)
                     {
                         Entity entity = new(world, entities[i]);
                         if (!lastPressedPointers.ContainsKey(entity))
@@ -82,7 +80,7 @@ namespace UI.Systems
                 {
                     Resizable resizable = new Entity(world, r.entity).As<Resizable>();
                     LayerMask resizableMask = r.component1.selectionMask;
-                    for (uint p = 0; p < pointerEntityCount; p++)
+                    for (int p = 0; p < pointerEntityCount; p++)
                     {
                         ref IsPointer pointer = ref pointerComponents[p];
                         LayerMask pointerSelectionMask = pointer.selectionMask;
@@ -107,7 +105,7 @@ namespace UI.Systems
                 }
             }
 
-            for (uint p = 0; p < pointerEntityCount; p++)
+            for (int p = 0; p < pointerEntityCount; p++)
             {
                 ref IsPointer pointer = ref pointerComponents[p];
                 lastPressedPointers[new(world, pointerEntities[p])] = pointer.HasPrimaryIntent;

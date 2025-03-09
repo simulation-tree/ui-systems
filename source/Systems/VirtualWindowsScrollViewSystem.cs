@@ -1,9 +1,8 @@
-﻿using UI.Components;
-using Simulation;
+﻿using Simulation;
 using System;
 using System.Numerics;
 using Transforms.Components;
-using Unmanaged;
+using UI.Components;
 using Worlds;
 
 namespace UI.Systems
@@ -41,8 +40,8 @@ namespace UI.Systems
                 Entity content = view.Content;
                 float minY = float.MaxValue;
                 float maxY = float.MinValue;
-                USpan<uint> children = content.Children;
-                for (uint i = 0; i < children.Length; i++)
+                ReadOnlySpan<uint> children = content.Children;
+                for (int i = 0; i < children.Length; i++)
                 {
                     Entity child = new(world, children[i]);
                     ref LocalToWorld childLtw = ref child.TryGetComponent<LocalToWorld>(out bool contains);

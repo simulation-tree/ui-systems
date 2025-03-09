@@ -3,9 +3,7 @@ using System;
 using System.Numerics;
 using Transforms.Components;
 using UI.Components;
-using Unmanaged;
 using Worlds;
-using static Worlds.Chunk;
 
 namespace UI.Systems
 {
@@ -42,9 +40,9 @@ namespace UI.Systems
             {
                 if (chunk.Definition.ContainsComponent(dropShadowComponent))
                 {
-                    USpan<uint> entities = chunk.Entities;
-                    USpan<IsDropShadow> components = chunk.GetComponents<IsDropShadow>(dropShadowComponent);
-                    for (uint i = 0; i < entities.Length; i++)
+                    ReadOnlySpan<uint> entities = chunk.Entities;
+                    Span<IsDropShadow> components = chunk.GetComponents<IsDropShadow>(dropShadowComponent);
+                    for (int i = 0; i < entities.Length; i++)
                     {
                         uint entity = entities[i];
                         ref IsDropShadow component = ref components[i];
@@ -76,7 +74,7 @@ namespace UI.Systems
                 Definition definition = chunk.Definition;
                 if (definition.ContainsComponent(dropShadowComponent) && !definition.ContainsComponent(scaleComponent))
                 {
-                    USpan<uint> entities = chunk.Entities;
+                    ReadOnlySpan<uint> entities = chunk.Entities;
                     operation.SelectEntities(entities);
                     selectedAny = true;
                 }
@@ -101,11 +99,11 @@ namespace UI.Systems
                 Definition definition = chunk.Definition;
                 if (definition.ContainsComponent(dropShadowComponent) && definition.ContainsComponent(scaleComponent) && definition.ContainsComponent(positionComponent))
                 {
-                    USpan<uint> entities = chunk.Entities;
-                    USpan<IsDropShadow> dropShadowComponents = chunk.GetComponents<IsDropShadow>(dropShadowComponent);
-                    USpan<Position> positionComponents = chunk.GetComponents<Position>(positionComponent);
-                    USpan<Scale> scaleComponents = chunk.GetComponents<Scale>(scaleComponent);
-                    for (uint i = 0; i < entities.Length; i++)
+                    ReadOnlySpan<uint> entities = chunk.Entities;
+                    Span<IsDropShadow> dropShadowComponents = chunk.GetComponents<IsDropShadow>(dropShadowComponent);
+                    Span<Position> positionComponents = chunk.GetComponents<Position>(positionComponent);
+                    Span<Scale> scaleComponents = chunk.GetComponents<Scale>(scaleComponent);
+                    for (int i = 0; i < entities.Length; i++)
                     {
                         uint entity = entities[i];
                         ref IsDropShadow component = ref dropShadowComponents[i];
@@ -121,7 +119,7 @@ namespace UI.Systems
                         if (world.TryGetComponent(foregroundEntity, out IsMenu menuComponent))
                         {
                             //unique branch for menus
-                            uint optionCount = world.GetArrayLength<IsMenuOption>(foregroundEntity);
+                            int optionCount = world.GetArrayLength<IsMenuOption>(foregroundEntity);
                             float originalHeight = menuComponent.optionSize.Y;
                             scaleValue.X = menuComponent.optionSize.X;
                             scaleValue.Y = originalHeight * optionCount;

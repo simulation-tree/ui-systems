@@ -6,7 +6,6 @@ using System.Numerics;
 using System.Runtime.CompilerServices;
 using Transforms.Components;
 using UI.Components;
-using Unmanaged;
 using Worlds;
 
 namespace UI.Systems
@@ -20,8 +19,8 @@ namespace UI.Systems
         [SkipLocalsInit]
         void ISystem.Update(in SystemContainer systemContainer, in World world, in TimeSpan delta)
         {
-            USpan<uint> destroyedCanvases = stackalloc uint[64];
-            uint destroyedCanvasCount = 0;
+            Span<uint> destroyedCanvases = stackalloc uint[64];
+            int destroyedCanvasCount = 0;
 
             ComponentType canvasType = world.Schema.GetComponentType<IsCanvas>();
             ComponentType positionType = world.Schema.GetComponentType<Position>();
@@ -31,11 +30,11 @@ namespace UI.Systems
                 Definition definition = chunk.Definition;
                 if (definition.ContainsComponent(canvasType) && definition.ContainsComponent(positionType) && definition.ContainsComponent(scaleType) && !definition.ContainsTag(TagType.Disabled))
                 {
-                    USpan<uint> entities = chunk.Entities;
-                    USpan<IsCanvas> canvasComponents = chunk.GetComponents<IsCanvas>(canvasType);
-                    USpan<Position> positionComponents = chunk.GetComponents<Position>(positionType);
-                    USpan<Scale> scaleComponents = chunk.GetComponents<Scale>(scaleType);
-                    for (uint i = 0; i < entities.Length; i++)
+                    ReadOnlySpan<uint> entities = chunk.Entities;
+                    Span<IsCanvas> canvasComponents = chunk.GetComponents<IsCanvas>(canvasType);
+                    Span<Position> positionComponents = chunk.GetComponents<Position>(positionType);
+                    Span<Scale> scaleComponents = chunk.GetComponents<Scale>(scaleType);
+                    for (int i = 0; i < entities.Length; i++)
                     {
                         uint canvasEntity = entities[i];
                         ref IsCanvas component = ref canvasComponents[i];
@@ -73,7 +72,7 @@ namespace UI.Systems
                 }
             }
 
-            for (uint i = 0; i < destroyedCanvasCount; i++)
+            for (int i = 0; i < destroyedCanvasCount; i++)
             {
                 world.DestroyEntity(destroyedCanvases[i]);
             }

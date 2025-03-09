@@ -5,7 +5,6 @@ using System;
 using System.Numerics;
 using Transforms.Components;
 using UI.Components;
-using Unmanaged;
 using Worlds;
 
 namespace UI.Systems
@@ -53,9 +52,9 @@ namespace UI.Systems
                 Definition definition = chunk.Definition;
                 if (definition.ContainsComponent(pointerComponent) && !definition.ContainsTag(TagType.Disabled))
                 {
-                    USpan<uint> entities = chunk.Entities;
-                    USpan<IsPointer> components = chunk.GetComponents<IsPointer>(pointerComponent);
-                    for (uint i = 0; i < entities.Length; i++)
+                    ReadOnlySpan<uint> entities = chunk.Entities;
+                    Span<IsPointer> components = chunk.GetComponents<IsPointer>(pointerComponent);
+                    for (int i = 0; i < entities.Length; i++)
                     {
                         ref IsPointer component = ref components[i];
                         Entity pointer = new(world, entities[i]);
@@ -224,10 +223,10 @@ namespace UI.Systems
                 Definition definition = chunk.Definition;
                 if (definition.ContainsComponent(selectableComponent) && definition.ContainsComponent(ltwComponent) && !definition.ContainsTag(TagType.Disabled))
                 {
-                    USpan<uint> entities = chunk.Entities;
-                    USpan<IsSelectable> selectableComponents = chunk.GetComponents<IsSelectable>(selectableComponent);
-                    USpan<LocalToWorld> ltwComponents = chunk.GetComponents<LocalToWorld>(ltwComponent);
-                    for (uint i = 0; i < entities.Length; i++)
+                    ReadOnlySpan<uint> entities = chunk.Entities;
+                    Span<IsSelectable> selectableComponents = chunk.GetComponents<IsSelectable>(selectableComponent);
+                    Span<LocalToWorld> ltwComponents = chunk.GetComponents<LocalToWorld>(ltwComponent);
+                    for (int i = 0; i < entities.Length; i++)
                     {
                         ref IsSelectable selectable = ref selectableComponents[i];
                         if (selectionMask.ContainsAny(selectable.selectionMask))

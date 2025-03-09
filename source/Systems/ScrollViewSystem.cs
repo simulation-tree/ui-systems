@@ -1,14 +1,13 @@
 ﻿using Collections;
-using UI.Components;
+using Collections.Generic;
 using Rendering;
 using Rendering.Components;
 using Simulation;
 using System;
 using System.Numerics;
 using Transforms.Components;
-using Unmanaged;
+using UI.Components;
 using Worlds;
-using Collections.Generic;
 
 namespace UI.Systems
 {
@@ -177,7 +176,7 @@ namespace UI.Systems
 
         private static void UpdateScissors(World world, uint contentEntity, Vector4 region)
         {
-            USpan<uint> contentChildren = world.GetChildren(contentEntity);
+            ReadOnlySpan<uint> contentChildren = world.GetChildren(contentEntity);
             foreach (uint child in contentChildren)
             {
                 if (world.ContainsComponent<IsRenderer>(child))

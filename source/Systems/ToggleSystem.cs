@@ -1,10 +1,9 @@
 ﻿using Collections;
-using UI.Components;
+using Collections.Generic;
 using Simulation;
 using System;
+using UI.Components;
 using Worlds;
-using Unmanaged;
-using Collections.Generic;
 
 namespace UI.Systems
 {
@@ -53,9 +52,9 @@ namespace UI.Systems
                 Definition definition = chunk.Definition;
                 if (definition.ContainsComponent(pointerComponent) && !definition.ContainsTag(TagType.Disabled))
                 {
-                    USpan<uint> entities = chunk.Entities;
-                    USpan<IsPointer> components = chunk.GetComponents<IsPointer>(pointerComponent);
-                    for (uint i = 0; i < entities.Length; i++)
+                    ReadOnlySpan<uint> entities = chunk.Entities;
+                    Span<IsPointer> components = chunk.GetComponents<IsPointer>(pointerComponent);
+                    for (int i = 0; i < entities.Length; i++)
                     {
                         ref IsPointer pointer = ref components[i];
                         uint entity = entities[i];
@@ -107,7 +106,7 @@ namespace UI.Systems
                 Definition definition = chunk.Definition;
                 if (definition.ContainsComponent(toggleComponent) && !definition.ContainsTag(TagType.Disabled))
                 {
-                    USpan<uint> entities = chunk.Entities;
+                    ReadOnlySpan<uint> entities = chunk.Entities;
                     toggleEntities.AddRange(entities);
                 }
             }

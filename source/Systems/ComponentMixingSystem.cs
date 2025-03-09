@@ -3,7 +3,6 @@ using Simulation;
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using Unmanaged;
 using Worlds;
 using Collections.Generic;
 
@@ -74,7 +73,7 @@ namespace UI.Systems
             requests.Clear();
         }
 
-        private readonly void MixComponents(World world, USpan<Request> requests)
+        private readonly void MixComponents(World world, System.Span<Request> requests)
         {
             foreach (var request in requests)
             {
@@ -87,23 +86,23 @@ namespace UI.Systems
                 ThrowIfComponentIsMissing(world, entity, rightType);
                 ThrowIfComponentSizesDontMatch(leftType, rightType);
                 ThrowIfComponentSizesDontMatch(leftType, outputType);
-                uint componentType = outputType.ComponentType.index;
+                int componentType = outputType.ComponentType.index;
                 if (!world.ContainsComponent(entity, componentType))
                 {
                     world.AddComponent(entity, componentType);
                 }
 
-                USpan<byte> leftBytes = world.GetComponentBytes(entity, leftType.ComponentType);
-                USpan<byte> rightBytes = world.GetComponentBytes(entity, rightType.ComponentType);
-                USpan<byte> outputBytes = world.GetComponentBytes(entity, componentType);
+                Span<byte> leftBytes = world.GetComponentBytes(entity, leftType.ComponentType);
+                Span<byte> rightBytes = world.GetComponentBytes(entity, rightType.ComponentType);
+                Span<byte> outputBytes = world.GetComponentBytes(entity, componentType);
                 ushort componentSize = leftType.size;
                 byte partCount = mix.vectorLength;
-                uint partSize = (uint)(componentSize / partCount);
-                for (uint i = 0; i < partCount; i++)
+                int partSize = componentSize / partCount;
+                for (int i = 0; i < partCount; i++)
                 {
-                    USpan<byte> leftPart = leftBytes.Slice(i * partSize, partSize);
-                    USpan<byte> rightPart = rightBytes.Slice(i * partSize, partSize);
-                    USpan<byte> outputPart = outputBytes.Slice(i * partSize, partSize);
+                    Span<byte> leftPart = leftBytes.Slice(i * partSize, partSize);
+                    Span<byte> rightPart = rightBytes.Slice(i * partSize, partSize);
+                    Span<byte> outputPart = outputBytes.Slice(i * partSize, partSize);
                     MixFunction function = functions[(byte)mix.operation];
                     function.Invoke(leftPart, rightPart, outputPart);
                 }
@@ -503,7 +502,7 @@ namespace UI.Systems
             this.function = function;
         }
 
-        public readonly void Invoke(USpan<byte> left, USpan<byte> right, USpan<byte> output)
+        public readonly void Invoke(ReadOnlySpan<byte> left, ReadOnlySpan<byte> right, ReadOnlySpan<byte> output)
         {
             function(new(left, right, output));
         }
@@ -512,16 +511,16 @@ namespace UI.Systems
         {
             public readonly byte size;
 
-            private readonly nint left;
-            private readonly nint right;
-            private readonly nint output;
+            private readonly byte* left;
+            private readonly byte* right;
+            private readonly byte* output;
 
-            public Input(USpan<byte> left, USpan<byte> right, USpan<byte> output)
+            public Input(ReadOnlySpan<byte> left, ReadOnlySpan<byte> right, ReadOnlySpan<byte> output)
             {
                 size = (byte)output.Length;
-                this.left = left.Address;
-                this.right = right.Address;
-                this.output = output.Address;
+                this.left = left.GetPointer();
+                this.right = right.GetPointer();
+                this.output = output.GetPointer();
             }
 
             public readonly ref T GetLeft<T>() where T : unmanaged

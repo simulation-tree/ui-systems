@@ -47,11 +47,11 @@ namespace UI.Tests
         [UnmanagedCallersOnly]
         private static Boolean ReplaceNoun(TryProcessLabel.Input input)
         {
-            if (input.OriginalText.Contains(NounToken.AsSpan()))
+            if (input.OriginalText.IndexOf(NounToken) != -1)
             {
-                USpan<char> newText = stackalloc char[(int)input.OriginalText.Length + 32];
-                uint newLength = Text.Replace(input.OriginalText, NounToken, ReplacementNoun, newText);
-                input.SetResult(newText.GetSpan(newLength));
+                Span<char> newText = stackalloc char[input.OriginalText.Length + 32];
+                int newLength = Text.Replace(input.OriginalText, NounToken, ReplacementNoun, newText);
+                input.SetResult(newText.Slice(0, newLength));
                 return true;
             }
 
@@ -61,11 +61,11 @@ namespace UI.Tests
         [UnmanagedCallersOnly]
         private static Boolean ReplaceVerb(TryProcessLabel.Input input)
         {
-            if (input.OriginalText.Contains(VerbToken.AsSpan()))
+            if (input.OriginalText.IndexOf(VerbToken) != -1)
             {
-                USpan<char> newText = stackalloc char[(int)input.OriginalText.Length + 32];
-                uint newLength = Text.Replace(input.OriginalText, VerbToken, ReplacementVerb, newText);
-                input.SetResult(newText.GetSpan(newLength));
+                Span<char> newText = stackalloc char[input.OriginalText.Length + 32];
+                int newLength = Text.Replace(input.OriginalText, VerbToken, ReplacementVerb, newText);
+                input.SetResult(newText.Slice(0, newLength));
                 return true;
             }
 

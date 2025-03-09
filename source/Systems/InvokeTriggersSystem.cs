@@ -2,7 +2,6 @@
 using Simulation;
 using System;
 using UI.Components;
-using Unmanaged;
 using Worlds;
 
 namespace UI.Systems
@@ -40,9 +39,9 @@ namespace UI.Systems
                 Definition definition = chunk.Definition;
                 if (definition.ContainsComponent(triggerComponent) && !definition.ContainsTag(TagType.Disabled))
                 {
-                    USpan<uint> entities = chunk.Entities;
-                    USpan<IsTrigger> triggers = chunk.GetComponents<IsTrigger>(triggerComponent);
-                    for (uint i = 0; i < entities.Length; i++)
+                    ReadOnlySpan<uint> entities = chunk.Entities;
+                    Span<IsTrigger> triggers = chunk.GetComponents<IsTrigger>(triggerComponent);
+                    for (int i = 0; i < entities.Length; i++)
                     {
                         ref IsTrigger trigger = ref triggers[i];
                         int triggerHash = trigger.GetHashCode();
@@ -65,7 +64,7 @@ namespace UI.Systems
                 List<Entity> entities = entitiesPerTrigger[functionHash];
 
                 //remove entities that no longer exist
-                for (uint i = entities.Count - 1; i != uint.MaxValue; i--)
+                for (int i = entities.Count - 1; i >= 0; i--)
                 {
                     Entity entity = entities[i];
                     if (entity.IsDestroyed)
@@ -77,7 +76,7 @@ namespace UI.Systems
                 currentEntities.Length = entities.Count;
                 currentEntities.CopyFrom(entities.AsSpan());
                 trigger.filter.Invoke(currentEntities.AsSpan(), trigger.userData);
-                for (uint i = 0; i < currentEntities.Length; i++)
+                for (int i = 0; i < currentEntities.Length; i++)
                 {
                     Entity entity = currentEntities[i];
                     if (entity != default && trigger.callback != default)
