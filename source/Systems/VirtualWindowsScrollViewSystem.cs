@@ -24,6 +24,8 @@ namespace UI.Systems
 
         private readonly void Update(World world)
         {
+            int ltwType = world.Schema.GetComponentType<LocalToWorld>();
+
             ComponentQuery<IsVirtualWindow> query = new(world);
             query.ExcludeDisabled(true);
             foreach (var v in query)
@@ -40,24 +42,10 @@ namespace UI.Systems
                 Entity content = view.Content;
                 float minY = float.MaxValue;
                 float maxY = float.MinValue;
-                ReadOnlySpan<uint> children = content.Children;
-                for (int i = 0; i < children.Length; i++)
+                int childCount = content.ChildCount;
+                if (childCount > 0)
                 {
-                    Entity child = new(world, children[i]);
-                    ref LocalToWorld childLtw = ref child.TryGetComponent<LocalToWorld>(out bool contains);
-                    if (contains)
-                    {
-                        float y = childLtw.Position.Y;
-                        if (y < minY)
-                        {
-                            minY = y;
-                        }
-
-                        if (y > maxY)
-                        {
-                            maxY = y;
-                        }
-                    }
+                    (minY, maxY) = GetMinMax(world, content.value, ltwType, childCount);
                 }
 
                 Vector2 windowSize = virtualWindow.Size;
@@ -91,6 +79,34 @@ namespace UI.Systems
                     //both
                 }
             }
+        }
+
+        private static (float min, float max) GetMinMax(World world, uint entity, int ltwType, int childCount)
+        {
+            float min = float.MaxValue;
+            float max = float.MinValue;
+            Span<uint> children = stackalloc uint[childCount];
+            world.CopyChildrenTo(entity, children);
+            for (int i = 0; i < children.Length; i++)
+            {
+                uint child = children[i];
+                ref LocalToWorld childLtw = ref world.TryGetComponent<LocalToWorld>(child, ltwType, out bool contains);
+                if (contains)
+                {
+                    float y = childLtw.Position.Y;
+                    if (y < min)
+                    {
+                        min = y;
+                    }
+
+                    if (y > max)
+                    {
+                        max = y;
+                    }
+                }
+            }
+
+            return (min, max);
         }
     }
 }

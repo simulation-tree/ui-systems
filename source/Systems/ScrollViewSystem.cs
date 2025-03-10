@@ -176,23 +176,28 @@ namespace UI.Systems
 
         private static void UpdateScissors(World world, uint contentEntity, Vector4 region)
         {
-            ReadOnlySpan<uint> contentChildren = world.GetChildren(contentEntity);
-            foreach (uint child in contentChildren)
+            int childCount = world.GetChildCount(contentEntity);
+            if (childCount > 0)
             {
-                if (world.ContainsComponent<IsRenderer>(child))
+                Span<uint> contentChildren = stackalloc uint[childCount];
+                world.CopyChildrenTo(contentEntity, contentChildren);
+                foreach (uint child in contentChildren)
                 {
-                    ref RendererScissor scissor = ref world.TryGetComponent<RendererScissor>(child, out bool contains);
-                    if (!contains)
+                    if (world.ContainsComponent<IsRenderer>(child))
                     {
-                        world.AddComponent(child, new RendererScissor(region));
+                        ref RendererScissor scissor = ref world.TryGetComponent<RendererScissor>(child, out bool contains);
+                        if (!contains)
+                        {
+                            world.AddComponent(child, new RendererScissor(region));
+                        }
+                        else
+                        {
+                            scissor.value = region;
+                        }
                     }
-                    else
-                    {
-                        scissor.value = region;
-                    }
-                }
 
-                UpdateScissors(world, child, region);
+                    UpdateScissors(world, child, region);
+                }
             }
         }
     }
