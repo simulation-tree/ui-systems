@@ -477,11 +477,11 @@ namespace UI.Systems
                 Mesh.Collection<Vector2> uvs = highlightMesh.UVs;
                 Mesh.Collection<Vector3> normals = highlightMesh.Normals;
                 Mesh.Collection<Vector4> colors = highlightMesh.Colors;
-                positions.CopyFrom(verticesList.AsSpan(0, faceCount * 4));
-                indices.CopyFrom(indicesList.AsSpan(0, faceCount * 6));
-                uvs.CopyFrom(uvList.AsSpan(0, faceCount * 4));
-                normals.CopyFrom(normalsList.AsSpan(0, faceCount * 4));
-                colors.CopyFrom(colorsList.AsSpan(0, faceCount * 4));
+                positions.CopyFrom(verticesList.GetSpan(faceCount * 4));
+                indices.CopyFrom(indicesList.GetSpan(faceCount * 6));
+                uvs.CopyFrom(uvList.GetSpan(faceCount * 4));
+                normals.CopyFrom(normalsList.GetSpan(faceCount * 4));
+                colors.CopyFrom(colorsList.GetSpan(faceCount * 4));
             }
         }
 
@@ -801,7 +801,7 @@ namespace UI.Systems
                     else
                     {
                         //remove char at cursor
-                        System.Span<char> newText = stackalloc char[text.Length - 1];
+                        Span<char> newText = stackalloc char[text.Length - 1];
                         //copy first part
                         text.Slice(0, selection.index - 1).CopyTo(newText);
                         //copy remaining

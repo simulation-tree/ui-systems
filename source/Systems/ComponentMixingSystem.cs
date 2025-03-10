@@ -73,9 +73,9 @@ namespace UI.Systems
             requests.Clear();
         }
 
-        private readonly void MixComponents(World world, System.Span<Request> requests)
+        private readonly void MixComponents(World world, ReadOnlySpan<Request> requests)
         {
-            foreach (var request in requests)
+            foreach (Request request in requests)
             {
                 uint entity = request.entity;
                 ComponentMix mix = request.mix;
