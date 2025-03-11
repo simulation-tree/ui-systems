@@ -42,7 +42,7 @@ namespace UI.Systems
             ComponentType textRendererType = world.Schema.GetComponentType<IsTextRenderer>();
             ComponentType processorType = world.Schema.GetComponentType<IsLabelProcessor>();
             TagType labelTag = world.Schema.GetTagType<IsLabel>();
-            ArrayElementType characterArrayType = world.Schema.GetArrayType<LabelCharacter>();
+            ArrayType characterArrayType = world.Schema.GetArrayType<LabelCharacter>();
 
             processors.Clear();
             foreach (Chunk chunk in world.Chunks)
