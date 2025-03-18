@@ -19,7 +19,7 @@ namespace UI.Tests
         [Test]
         public void SimpleKeywordReplacement()
         {
-            simulator.AddSystem<LabelTextSystem>();
+            simulator.AddSystem(new LabelTextSystem());
 
             Settings settings = new(world);
             Destination destination = new(world, new(1920, 1080), "dummy");

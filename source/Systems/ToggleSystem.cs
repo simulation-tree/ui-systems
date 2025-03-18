@@ -1,5 +1,4 @@
-﻿using Collections;
-using Collections.Generic;
+﻿using Collections.Generic;
 using Simulation;
 using System;
 using UI.Components;
@@ -12,48 +11,43 @@ namespace UI.Systems
         private readonly List<uint> pressedPointers;
         private readonly List<uint> toggleEntities;
 
-        private ToggleSystem(List<uint> pressedPointers, List<uint> toggleEntities)
+        public ToggleSystem()
         {
-            this.pressedPointers = pressedPointers;
-            this.toggleEntities = toggleEntities;
+            pressedPointers = new(4);
+            toggleEntities = new(4);
         }
 
-        void ISystem.Start(in SystemContainer systemContainer, in World world)
+        public readonly void Dispose()
         {
-            if (systemContainer.World == world)
-            {
-                List<uint> pressedPointers = new();
-                List<uint> toggleEntities = new();
-                systemContainer.Write(new ToggleSystem(pressedPointers, toggleEntities));
-            }
+            toggleEntities.Dispose();
+            pressedPointers.Dispose();
         }
 
-        void ISystem.Update(in SystemContainer systemContainer, in World world, in TimeSpan delta)
+        void ISystem.Start(in SystemContext context, in World world)
+        {
+        }
+
+        void ISystem.Update(in SystemContext context, in World world, in TimeSpan delta)
         {
             Update(world);
         }
 
-        void ISystem.Finish(in SystemContainer systemContainer, in World world)
+        void ISystem.Finish(in SystemContext context, in World world)
         {
-            if (systemContainer.World == world)
-            {
-                toggleEntities.Dispose();
-                pressedPointers.Dispose();
-            }
         }
 
         private readonly void Update(World world)
         {
             FindToggleEntities(world);
 
-            ComponentType pointerComponent = world.Schema.GetComponentType<IsPointer>();
+            int pointerComponent = world.Schema.GetComponentType<IsPointer>();
             foreach (Chunk chunk in world.Chunks)
             {
                 Definition definition = chunk.Definition;
-                if (definition.ContainsComponent(pointerComponent) && !definition.ContainsTag(TagType.Disabled))
+                if (definition.ContainsComponent(pointerComponent) && !definition.ContainsTag(Schema.DisabledTagType))
                 {
                     ReadOnlySpan<uint> entities = chunk.Entities;
-                    Span<IsPointer> components = chunk.GetComponents<IsPointer>(pointerComponent);
+                    ComponentEnumerator<IsPointer> components = chunk.GetComponents<IsPointer>(pointerComponent);
                     for (int i = 0; i < entities.Length; i++)
                     {
                         ref IsPointer pointer = ref components[i];
@@ -100,11 +94,11 @@ namespace UI.Systems
         private readonly void FindToggleEntities(World world)
         {
             toggleEntities.Clear();
-            ComponentType toggleComponent = world.Schema.GetComponentType<IsToggle>();
+            int toggleComponent = world.Schema.GetComponentType<IsToggle>();
             foreach (Chunk chunk in world.Chunks)
             {
                 Definition definition = chunk.Definition;
-                if (definition.ContainsComponent(toggleComponent) && !definition.ContainsTag(TagType.Disabled))
+                if (definition.ContainsComponent(toggleComponent) && !definition.ContainsTag(Schema.DisabledTagType))
                 {
                     ReadOnlySpan<uint> entities = chunk.Entities;
                     toggleEntities.AddRange(entities);

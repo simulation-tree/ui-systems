@@ -35,8 +35,8 @@ namespace UI.Systems.Tests
         protected override void SetUp()
         {
             base.SetUp();
-            simulator.AddSystem<ComponentMixingSystem>();
-            simulator.AddSystem<InvokeTriggersSystem>();
+            simulator.AddSystem(new ComponentMixingSystem());
+            simulator.AddSystem(new InvokeTriggersSystem());
         }
 
         protected override Schema CreateSchema()

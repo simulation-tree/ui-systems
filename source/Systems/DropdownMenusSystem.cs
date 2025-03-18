@@ -1,22 +1,26 @@
-﻿using UI.Components;
-using Simulation;
+﻿using Simulation;
 using System;
 using Transforms.Components;
+using UI.Components;
 using Worlds;
 
 namespace UI.Systems
 {
     public readonly partial struct DropdownMenusSystem : ISystem
     {
-        void ISystem.Finish(in SystemContainer systemContainer, in World world)
+        readonly void IDisposable.Dispose()
         {
         }
 
-        void ISystem.Start(in SystemContainer systemContainer, in World world)
+        void ISystem.Finish(in SystemContext context, in World world)
         {
         }
 
-        void ISystem.Update(in SystemContainer systemContainer, in World world, in TimeSpan delta)
+        void ISystem.Start(in SystemContext context, in World world)
+        {
+        }
+
+        void ISystem.Update(in SystemContext context, in World world, in TimeSpan delta)
         {
             ComponentQuery<IsDropdown, LocalToWorld> dropdownQuery = new(world);
             dropdownQuery.ExcludeDisabled(true);

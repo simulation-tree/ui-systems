@@ -1,10 +1,10 @@
-﻿using UI.Components;
+﻿using Collections.Generic;
 using Simulation;
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using UI.Components;
 using Worlds;
-using Collections.Generic;
 
 namespace UI.Systems
 {
@@ -31,34 +31,21 @@ namespace UI.Systems
 
         private readonly List<Request> requests;
 
-        private ComponentMixingSystem(List<Request> requests)
+        public ComponentMixingSystem()
         {
-            this.requests = requests;
+            requests = new(4);
         }
 
-        void ISystem.Start(in SystemContainer systemContainer, in World world)
+        public readonly void Dispose()
         {
-            if (systemContainer.World == world)
-            {
-                List<Request> requests = new();
-                systemContainer.Write(new ComponentMixingSystem(requests));
-            }
+            requests.Dispose();
         }
 
-        void ISystem.Update(in SystemContainer systemContainer, in World world, in TimeSpan delta)
+        void ISystem.Start(in SystemContext context, in World world)
         {
-            Update(world);
         }
 
-        void ISystem.Finish(in SystemContainer systemContainer, in World world)
-        {
-            if (systemContainer.World == world)
-            {
-                requests.Dispose();
-            }
-        }
-
-        private readonly void Update(World world)
+        void ISystem.Update(in SystemContext context, in World world, in TimeSpan delta)
         {
             ComponentQuery<ComponentMix> query = new(world);
             query.ExcludeDisabled(true);
@@ -71,6 +58,10 @@ namespace UI.Systems
 
             MixComponents(world, requests.AsSpan());
             requests.Clear();
+        }
+
+        void ISystem.Finish(in SystemContext context, in World world)
+        {
         }
 
         private readonly void MixComponents(World world, ReadOnlySpan<Request> requests)
@@ -86,14 +77,14 @@ namespace UI.Systems
                 ThrowIfComponentIsMissing(world, entity, rightType);
                 ThrowIfComponentSizesDontMatch(leftType, rightType);
                 ThrowIfComponentSizesDontMatch(leftType, outputType);
-                int componentType = outputType.ComponentType.index;
+                int componentType = outputType.index;
                 if (!world.ContainsComponent(entity, componentType))
                 {
-                    world.AddComponent(entity, componentType);
+                    world.AddComponentType(entity, componentType);
                 }
 
-                Span<byte> leftBytes = world.GetComponentBytes(entity, leftType.ComponentType);
-                Span<byte> rightBytes = world.GetComponentBytes(entity, rightType.ComponentType);
+                Span<byte> leftBytes = world.GetComponentBytes(entity, leftType.index);
+                Span<byte> rightBytes = world.GetComponentBytes(entity, rightType.index);
                 Span<byte> outputBytes = world.GetComponentBytes(entity, componentType);
                 ushort componentSize = leftType.size;
                 byte partCount = mix.vectorLength;
@@ -465,7 +456,7 @@ namespace UI.Systems
         [Conditional("DEBUG")]
         private void ThrowIfComponentIsMissing(World world, uint entity, DataType componentType)
         {
-            if (!world.ContainsComponent(entity, componentType.ComponentType))
+            if (!world.ContainsComponent(entity, componentType.index))
             {
                 throw new Exception($"Entity `{entity}` is missing expected component `{componentType.ToString(world.Schema)}`");
             }

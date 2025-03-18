@@ -1,5 +1,4 @@
 ﻿using Clipboard;
-using Collections;
 using Collections.Generic;
 using Fonts;
 using Meshes;
@@ -29,39 +28,27 @@ namespace UI.Systems
         private bool lastAnyPointerPressed;
         private readonly Library clipboard;
 
-        private TextFieldEditingSystem(Library clipboard)
+        public TextFieldEditingSystem()
         {
+            clipboard = new();
             lastSelections = new();
-            this.clipboard = clipboard;
             lastPressedCharacters = default;
             currentCharacters = default;
             nextPress = DateTime.UtcNow;
             lastAnyPointerPressed = false;
         }
 
-        void ISystem.Start(in SystemContainer systemContainer, in World world)
+        public readonly void Dispose()
         {
-            if (systemContainer.World == world)
-            {
-                systemContainer.Write(new TextFieldEditingSystem(new Library()));
-            }
+            lastSelections.Dispose();
+            clipboard.Dispose();
         }
 
-        void ISystem.Update(in SystemContainer systemContainer, in World world, in TimeSpan delta)
+        void ISystem.Start(in SystemContext context, in World world)
         {
-            Update(world);
         }
 
-        void ISystem.Finish(in SystemContainer systemContainer, in World world)
-        {
-            if (systemContainer.World == world)
-            {
-                clipboard.Dispose();
-                lastSelections.Dispose();
-            }
-        }
-
-        private void Update(World world)
+        void ISystem.Update(in SystemContext context, in World world, in TimeSpan delta)
         {
             ComponentQuery<IsTextField, LocalToWorld> textLabelQuery = new(world);
             foreach (var r in textLabelQuery)
@@ -273,6 +260,10 @@ namespace UI.Systems
                     }
                 }
             }
+        }
+
+        void ISystem.Finish(in SystemContext context, in World world)
+        {
         }
 
         private static void InsertText(Label textLabel, string clipboardText, ref TextSelection selection)

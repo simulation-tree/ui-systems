@@ -11,37 +11,34 @@ namespace UI.Systems
     {
         private readonly Operation operation;
 
-        private UpdateDropShadowTransformSystem(Operation destroyOperation)
+        public UpdateDropShadowTransformSystem()
         {
-            this.operation = destroyOperation;
+            operation = new();
         }
 
-        void ISystem.Finish(in SystemContainer systemContainer, in World world)
+        public readonly void Dispose()
         {
-            if (systemContainer.World == world)
-            {
-                operation.Dispose();
-            }
+            operation.Dispose();
         }
 
-        void ISystem.Start(in SystemContainer systemContainer, in World world)
+        void ISystem.Finish(in SystemContext context, in World world)
         {
-            if (systemContainer.World == world)
-            {
-                systemContainer.Write(new UpdateDropShadowTransformSystem(new()));
-            }
         }
 
-        void ISystem.Update(in SystemContainer systemContainer, in World world, in TimeSpan delta)
+        void ISystem.Start(in SystemContext context, in World world)
+        {
+        }
+
+        void ISystem.Update(in SystemContext context, in World world, in TimeSpan delta)
         {
             //destroy drop shadows if their foreground doesnt exist anymore
-            ComponentType dropShadowComponent = world.Schema.GetComponentType<IsDropShadow>();
+            int dropShadowComponent = world.Schema.GetComponentType<IsDropShadow>();
             foreach (Chunk chunk in world.Chunks)
             {
                 if (chunk.Definition.ContainsComponent(dropShadowComponent))
                 {
                     ReadOnlySpan<uint> entities = chunk.Entities;
-                    Span<IsDropShadow> components = chunk.GetComponents<IsDropShadow>(dropShadowComponent);
+                    ComponentEnumerator<IsDropShadow> components = chunk.GetComponents<IsDropShadow>(dropShadowComponent);
                     for (int i = 0; i < entities.Length; i++)
                     {
                         uint entity = entities[i];
@@ -68,7 +65,7 @@ namespace UI.Systems
             //add scale component to drop shadows that dont have it yet
             //todo: should check if the entity has been destroyed since previous instructions
             bool selectedAny = false;
-            ComponentType scaleComponent = world.Schema.GetComponentType<Scale>();
+            int scaleComponent = world.Schema.GetComponentType<Scale>();
             foreach (Chunk chunk in world.Chunks)
             {
                 Definition definition = chunk.Definition;
@@ -93,16 +90,16 @@ namespace UI.Systems
 
             //do the thing
             const float ShadowDistance = 30f;
-            ComponentType positionComponent = world.Schema.GetComponentType<Position>();
+            int positionComponent = world.Schema.GetComponentType<Position>();
             foreach (Chunk chunk in world.Chunks)
             {
                 Definition definition = chunk.Definition;
                 if (definition.ContainsComponent(dropShadowComponent) && definition.ContainsComponent(scaleComponent) && definition.ContainsComponent(positionComponent))
                 {
                     ReadOnlySpan<uint> entities = chunk.Entities;
-                    Span<IsDropShadow> dropShadowComponents = chunk.GetComponents<IsDropShadow>(dropShadowComponent);
-                    Span<Position> positionComponents = chunk.GetComponents<Position>(positionComponent);
-                    Span<Scale> scaleComponents = chunk.GetComponents<Scale>(scaleComponent);
+                    ComponentEnumerator<IsDropShadow> dropShadowComponents = chunk.GetComponents<IsDropShadow>(dropShadowComponent);
+                    ComponentEnumerator<Position> positionComponents = chunk.GetComponents<Position>(positionComponent);
+                    ComponentEnumerator<Scale> scaleComponents = chunk.GetComponents<Scale>(scaleComponent);
                     for (int i = 0; i < entities.Length; i++)
                     {
                         uint entity = entities[i];

@@ -1,6 +1,5 @@
 ﻿using Automations;
 using Automations.Components;
-using Collections;
 using Collections.Generic;
 using Simulation;
 using System;
@@ -13,32 +12,28 @@ namespace UI.Systems
     {
         private readonly List<Entity> selectedEntities;
 
-        private AutomationParameterSystem(List<Entity> selectedEntities)
+        public AutomationParameterSystem()
         {
-            this.selectedEntities = selectedEntities;
+            selectedEntities = new(16);
         }
 
-        void ISystem.Start(in SystemContainer systemContainer, in World world)
+        public readonly void Dispose()
         {
-            if (systemContainer.World == world)
-            {
-                List<Entity> selectedEntities = new();
-                systemContainer.Write(new AutomationParameterSystem(selectedEntities));
-            }
+            selectedEntities.Dispose();
         }
 
-        void ISystem.Update(in SystemContainer systemContainer, in World world, in TimeSpan delta)
+        readonly void ISystem.Start(in SystemContext context, in World world)
+        {
+        }
+
+        void ISystem.Update(in SystemContext context, in World world, in TimeSpan delta)
         {
             FindSelectedEntities(world);
             UpdateSelectableParameters(world);
         }
 
-        void ISystem.Finish(in SystemContainer systemContainer, in World world)
+        readonly void ISystem.Finish(in SystemContext context, in World world)
         {
-            if (systemContainer.World == world)
-            {
-                selectedEntities.Dispose();
-            }
         }
 
         private readonly void FindSelectedEntities(World world)

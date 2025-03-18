@@ -9,20 +9,15 @@ namespace UI.Systems
 {
     public readonly partial struct VirtualWindowsScrollViewSystem : ISystem
     {
-        void ISystem.Start(in SystemContainer systemContainer, in World world)
+        readonly void IDisposable.Dispose()
         {
         }
 
-        void ISystem.Update(in SystemContainer systemContainer, in World world, in TimeSpan delta)
-        {
-            Update(world);
-        }
-
-        void ISystem.Finish(in SystemContainer systemContainer, in World world)
+        void ISystem.Start(in SystemContext context, in World world)
         {
         }
 
-        private readonly void Update(World world)
+        void ISystem.Update(in SystemContext context, in World world, in TimeSpan delta)
         {
             int ltwType = world.Schema.GetComponentType<LocalToWorld>();
 
@@ -79,6 +74,10 @@ namespace UI.Systems
                     //both
                 }
             }
+        }
+
+        void ISystem.Finish(in SystemContext context, in World world)
+        {
         }
 
         private static (float min, float max) GetMinMax(World world, uint entity, int ltwType, int childCount)

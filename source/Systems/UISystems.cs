@@ -6,53 +6,55 @@ namespace UI.Systems
 {
     public readonly partial struct UISystems : ISystem
     {
-        void ISystem.Start(in SystemContainer systemContainer, in World world)
+        readonly void IDisposable.Dispose()
         {
-            if (systemContainer.World == world)
+        }
+
+        void ISystem.Start(in SystemContext context, in World world)
+        {
+            if (context.World == world)
             {
-                Simulator simulator = systemContainer.simulator;
-                simulator.AddSystem<CanvasSystem>();
-                simulator.AddSystem<SelectionSystem>();
-                simulator.AddSystem<ResizingSystem>();
-                simulator.AddSystem<LabelTextSystem>();
-                simulator.AddSystem<VirtualWindowsScrollViewSystem>();
-                simulator.AddSystem<InvokeTriggersSystem>();
-                simulator.AddSystem<AutomationParameterSystem>();
-                simulator.AddSystem<ComponentMixingSystem>();
-                simulator.AddSystem<PointerDraggingSelectableSystem>();
-                simulator.AddSystem<ToggleSystem>();
-                simulator.AddSystem<ScrollHandleMovingSystem>();
-                simulator.AddSystem<ScrollViewSystem>();
-                simulator.AddSystem<TextFieldEditingSystem>();
-                simulator.AddSystem<DropdownMenusSystem>();
-                simulator.AddSystem<UpdateDropShadowTransformSystem>();
+                context.AddSystem(new CanvasSystem());
+                context.AddSystem(new SelectionSystem());
+                context.AddSystem(new ResizingSystem());
+                context.AddSystem(new LabelTextSystem());
+                context.AddSystem(new VirtualWindowsScrollViewSystem());
+                context.AddSystem(new InvokeTriggersSystem());
+                context.AddSystem(new AutomationParameterSystem());
+                context.AddSystem(new ComponentMixingSystem());
+                context.AddSystem(new PointerDraggingSelectableSystem());
+                context.AddSystem(new ToggleSystem());
+                context.AddSystem(new ScrollHandleMovingSystem());
+                context.AddSystem(new ScrollViewSystem());
+                context.AddSystem(new TextFieldEditingSystem());
+                context.AddSystem(new DropdownMenusSystem());
+                context.AddSystem(new UpdateDropShadowTransformSystem());
             }
         }
 
-        void ISystem.Update(in SystemContainer systemContainer, in World world, in TimeSpan delta)
+        void ISystem.Update(in SystemContext context, in World world, in TimeSpan delta)
         {
         }
 
-        void ISystem.Finish(in SystemContainer systemContainer, in World world)
+        void ISystem.Finish(in SystemContext context, in World world)
         {
-            if (systemContainer.World == world)
+            if (context.World == world)
             {
-                Simulator simulator = systemContainer.simulator;
-                simulator.RemoveSystem<UpdateDropShadowTransformSystem>();
-                simulator.RemoveSystem<DropdownMenusSystem>();
-                simulator.RemoveSystem<TextFieldEditingSystem>();
-                simulator.RemoveSystem<ScrollViewSystem>();
-                simulator.RemoveSystem<ScrollHandleMovingSystem>();
-                simulator.RemoveSystem<ToggleSystem>();
-                simulator.RemoveSystem<PointerDraggingSelectableSystem>();
-                simulator.RemoveSystem<ComponentMixingSystem>();
-                simulator.RemoveSystem<AutomationParameterSystem>();
-                simulator.RemoveSystem<InvokeTriggersSystem>();
-                simulator.RemoveSystem<VirtualWindowsScrollViewSystem>();
-                simulator.RemoveSystem<LabelTextSystem>();
-                simulator.RemoveSystem<ResizingSystem>();
-                simulator.RemoveSystem<SelectionSystem>();
-                simulator.RemoveSystem<CanvasSystem>();
+                context.RemoveSystem<UpdateDropShadowTransformSystem>();
+                context.RemoveSystem<DropdownMenusSystem>();
+                context.RemoveSystem<TextFieldEditingSystem>();
+                context.RemoveSystem<ScrollViewSystem>();
+                context.RemoveSystem<ScrollHandleMovingSystem>();
+                context.RemoveSystem<ToggleSystem>();
+                context.RemoveSystem<PointerDraggingSelectableSystem>();
+                context.RemoveSystem<ComponentMixingSystem>();
+                context.RemoveSystem<AutomationParameterSystem>();
+                context.RemoveSystem<InvokeTriggersSystem>();
+                context.RemoveSystem<VirtualWindowsScrollViewSystem>();
+                context.RemoveSystem<LabelTextSystem>();
+                context.RemoveSystem<ResizingSystem>();
+                context.RemoveSystem<SelectionSystem>();
+                context.RemoveSystem<CanvasSystem>();
             }
         }
     }

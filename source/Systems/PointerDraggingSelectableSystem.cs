@@ -1,11 +1,10 @@
-﻿using Collections;
-using UI.Components;
+﻿using Collections.Generic;
 using Simulation;
 using System;
 using System.Numerics;
 using Transforms.Components;
+using UI.Components;
 using Worlds;
-using Collections.Generic;
 
 namespace UI.Systems
 {
@@ -18,40 +17,26 @@ namespace UI.Systems
         private Entity dragPointer;
         private Vector2 lastPosition;
 
-        private PointerDraggingSelectableSystem(List<Entity> pressedStates, List<uint> draggableEntities)
+        public PointerDraggingSelectableSystem()
         {
-            this.pressedStates = pressedStates;
-            this.draggableEntities = draggableEntities;
+            pressedStates = new(16);
+            draggableEntities = new(16);
             dragTarget = default;
             dragPointer = default;
             lastPosition = default;
         }
 
-        void ISystem.Start(in SystemContainer systemContainer, in World world)
+        public readonly void Dispose()
         {
-            if (systemContainer.World == world)
-            {
-                List<Entity> pressedStates = new();
-                List<uint> draggableEntities = new();
-                systemContainer.Write(new PointerDraggingSelectableSystem(pressedStates, draggableEntities));
-            }
+            draggableEntities.Dispose();
+            pressedStates.Dispose();
         }
 
-        void ISystem.Update(in SystemContainer systemContainer, in World world, in TimeSpan delta)
+        readonly void ISystem.Start(in SystemContext context, in World world)
         {
-            Update(world);
         }
 
-        void ISystem.Finish(in SystemContainer systemContainer, in World world)
-        {
-            if (systemContainer.World == world)
-            {
-                draggableEntities.Dispose();
-                pressedStates.Dispose();
-            }
-        }
-
-        private void Update(World world)
+        void ISystem.Update(in SystemContext context, in World world, in TimeSpan delta)
         {
             FindDraggableEntities(world);
 
@@ -115,6 +100,10 @@ namespace UI.Systems
                     selectablePosition.value += new Vector3(pointerDelta, 0);
                 }
             }
+        }
+
+        readonly void ISystem.Finish(in SystemContext context, in World world)
+        {
         }
 
         private readonly void FindDraggableEntities(World world)

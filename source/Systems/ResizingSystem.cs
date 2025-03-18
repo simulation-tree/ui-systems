@@ -19,31 +19,24 @@ namespace UI.Systems
 
         public ResizingSystem()
         {
-            lastPressedPointers = new();
+            lastPressedPointers = new(4);
         }
 
-        void ISystem.Finish(in SystemContainer systemContainer, in World world)
+        public readonly void Dispose()
         {
-            if (systemContainer.World == world)
-            {
-                lastPressedPointers.Dispose();
-            }
+            lastPressedPointers.Dispose();
         }
 
-        void ISystem.Start(in SystemContainer systemContainer, in World world)
+        void ISystem.Start(in SystemContext context, in World world)
         {
-            if (systemContainer.World == world)
-            {
-                systemContainer.Write(new ResizingSystem());
-            }
         }
 
-        void ISystem.Update(in SystemContainer systemContainer, in World world, in TimeSpan delta)
+        void ISystem.Update(in SystemContext context, in World world, in TimeSpan delta)
         {
-            ComponentType pointerType = world.Schema.GetComponentType<IsPointer>();
-            ComponentType resizableType = world.Schema.GetComponentType<IsResizable>();
-            ComponentType positionType = world.Schema.GetComponentType<Position>();
-            ComponentType scaleType = world.Schema.GetComponentType<Scale>();
+            int pointerType = world.Schema.GetComponentType<IsPointer>();
+            int resizableType = world.Schema.GetComponentType<IsResizable>();
+            int positionType = world.Schema.GetComponentType<Position>();
+            int scaleType = world.Schema.GetComponentType<Scale>();
             const int PointerCapacity = 16;
             Span<uint> pointerEntities = stackalloc uint[PointerCapacity];
             Span<IsPointer> pointerComponents = stackalloc IsPointer[PointerCapacity];
@@ -51,10 +44,10 @@ namespace UI.Systems
             foreach (Chunk chunk in world.Chunks)
             {
                 Definition definition = chunk.Definition;
-                if (definition.ContainsComponent(pointerType) && !definition.ContainsTag(TagType.Disabled))
+                if (definition.ContainsComponent(pointerType) && !definition.ContainsTag(Schema.DisabledTagType))
                 {
                     ReadOnlySpan<uint> entities = chunk.Entities;
-                    Span<IsPointer> components = chunk.GetComponents<IsPointer>(pointerType);
+                    ComponentEnumerator<IsPointer> components = chunk.GetComponents<IsPointer>(pointerType);
                     for (int i = 0; i < entities.Length; i++)
                     {
                         Entity entity = new(world, entities[i]);
@@ -145,6 +138,10 @@ namespace UI.Systems
                     position.value.Y += pointerDelta.Y;
                 }
             }
+        }
+
+        void ISystem.Finish(in SystemContext context, in World world)
+        {
         }
     }
 }

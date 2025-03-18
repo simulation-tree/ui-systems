@@ -14,46 +14,32 @@ namespace UI.Systems
         private readonly Dictionary<Entity, PointerAction> pointerStates;
         private readonly List<(uint entity, LocalToWorld ltw)> selectableEntities;
 
-        private SelectionSystem(Dictionary<Entity, PointerAction> pointerStates, List<(uint entity, LocalToWorld ltw)> selectableEntities)
+        public SelectionSystem()
         {
-            this.pointerStates = pointerStates;
-            this.selectableEntities = selectableEntities;
+            pointerStates = new(4);
+            selectableEntities = new(4);
         }
 
-        void ISystem.Start(in SystemContainer systemContainer, in World world)
+        public readonly void Dispose()
         {
-            if (systemContainer.World == world)
-            {
-                Dictionary<Entity, PointerAction> pointerStates = new();
-                List<(uint entity, LocalToWorld ltw)> selectableEntities = new();
-                systemContainer.Write(new SelectionSystem(pointerStates, selectableEntities));
-            }
+            selectableEntities.Dispose();
+            pointerStates.Dispose();
         }
 
-        void ISystem.Update(in SystemContainer systemContainer, in World world, in TimeSpan delta)
+        void ISystem.Start(in SystemContext context, in World world)
         {
-            Update(world);
         }
 
-        void ISystem.Finish(in SystemContainer systemContainer, in World world)
+        void ISystem.Update(in SystemContext context, in World world, in TimeSpan delta)
         {
-            if (systemContainer.World == world)
-            {
-                selectableEntities.Dispose();
-                pointerStates.Dispose();
-            }
-        }
-
-        private readonly void Update(World world)
-        {
-            ComponentType pointerComponent = world.Schema.GetComponentType<IsPointer>();
+            int pointerComponent = world.Schema.GetComponentType<IsPointer>();
             foreach (Chunk chunk in world.Chunks)
             {
                 Definition definition = chunk.Definition;
-                if (definition.ContainsComponent(pointerComponent) && !definition.ContainsTag(TagType.Disabled))
+                if (definition.ContainsComponent(pointerComponent) && !definition.ContainsTag(Schema.DisabledTagType))
                 {
                     ReadOnlySpan<uint> entities = chunk.Entities;
-                    Span<IsPointer> components = chunk.GetComponents<IsPointer>(pointerComponent);
+                    ComponentEnumerator<IsPointer> components = chunk.GetComponents<IsPointer>(pointerComponent);
                     for (int i = 0; i < entities.Length; i++)
                     {
                         ref IsPointer component = ref components[i];
@@ -208,6 +194,10 @@ namespace UI.Systems
             //todo: handle using arrow keys to switch to an adjacent selectable
         }
 
+        void ISystem.Finish(in SystemContext context, in World world)
+        {
+        }
+
         /// <summary>
         /// Finds all renderers that have a selection mask
         /// which intersects with the given <paramref name="selectionMask"/>.
@@ -216,16 +206,16 @@ namespace UI.Systems
         {
             selectableEntities.Clear();
 
-            ComponentType selectableComponent = world.Schema.GetComponentType<IsSelectable>();
-            ComponentType ltwComponent = world.Schema.GetComponentType<LocalToWorld>();
+            int selectableComponent = world.Schema.GetComponentType<IsSelectable>();
+            int ltwComponent = world.Schema.GetComponentType<LocalToWorld>();
             foreach (Chunk chunk in world.Chunks)
             {
                 Definition definition = chunk.Definition;
-                if (definition.ContainsComponent(selectableComponent) && definition.ContainsComponent(ltwComponent) && !definition.ContainsTag(TagType.Disabled))
+                if (definition.ContainsComponent(selectableComponent) && definition.ContainsComponent(ltwComponent) && !definition.ContainsTag(Schema.DisabledTagType))
                 {
                     ReadOnlySpan<uint> entities = chunk.Entities;
-                    Span<IsSelectable> selectableComponents = chunk.GetComponents<IsSelectable>(selectableComponent);
-                    Span<LocalToWorld> ltwComponents = chunk.GetComponents<LocalToWorld>(ltwComponent);
+                    ComponentEnumerator<IsSelectable> selectableComponents = chunk.GetComponents<IsSelectable>(selectableComponent);
+                    ComponentEnumerator<LocalToWorld> ltwComponents = chunk.GetComponents<LocalToWorld>(ltwComponent);
                     for (int i = 0; i < entities.Length; i++)
                     {
                         ref IsSelectable selectable = ref selectableComponents[i];

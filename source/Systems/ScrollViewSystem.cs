@@ -1,5 +1,4 @@
-﻿using Collections;
-using Collections.Generic;
+﻿using Collections.Generic;
 using Rendering;
 using Rendering.Components;
 using Simulation;
@@ -15,31 +14,27 @@ namespace UI.Systems
     {
         private readonly List<uint> scrollBarLinkEntities;
 
-        private ScrollViewSystem(List<uint> scrollBarLinkEntities)
+        public ScrollViewSystem()
         {
-            this.scrollBarLinkEntities = scrollBarLinkEntities;
+            scrollBarLinkEntities = new(4);
         }
 
-        void ISystem.Start(in SystemContainer systemContainer, in World world)
+        public readonly void Dispose()
         {
-            if (systemContainer.World == world)
-            {
-                List<uint> scrollBarLinkEntities = new();
-                systemContainer.Write(new ScrollViewSystem(scrollBarLinkEntities));
-            }
+            scrollBarLinkEntities.Dispose();
         }
 
-        void ISystem.Update(in SystemContainer systemContainer, in World world, in TimeSpan delta)
+        void ISystem.Start(in SystemContext context, in World world)
+        {
+        }
+
+        void ISystem.Update(in SystemContext context, in World world, in TimeSpan delta)
         {
             Update(world);
         }
 
-        void ISystem.Finish(in SystemContainer systemContainer, in World world)
+        void ISystem.Finish(in SystemContext context, in World world)
         {
-            if (systemContainer.World == world)
-            {
-                scrollBarLinkEntities.Dispose();
-            }
         }
 
         private readonly void Update(World world)

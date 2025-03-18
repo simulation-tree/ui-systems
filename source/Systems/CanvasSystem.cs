@@ -12,28 +12,31 @@ namespace UI.Systems
 {
     public readonly partial struct CanvasSystem : ISystem
     {
-        void ISystem.Start(in SystemContainer systemContainer, in World world)
+        readonly void IDisposable.Dispose()
+        {
+        }
+
+        void ISystem.Start(in SystemContext context, in World world)
         {
         }
 
         [SkipLocalsInit]
-        void ISystem.Update(in SystemContainer systemContainer, in World world, in TimeSpan delta)
+        void ISystem.Update(in SystemContext context, in World world, in TimeSpan delta)
         {
             Span<uint> destroyedCanvases = stackalloc uint[64];
             int destroyedCanvasCount = 0;
-
-            ComponentType canvasType = world.Schema.GetComponentType<IsCanvas>();
-            ComponentType positionType = world.Schema.GetComponentType<Position>();
-            ComponentType scaleType = world.Schema.GetComponentType<Scale>();
+            int canvasType = world.Schema.GetComponentType<IsCanvas>();
+            int positionType = world.Schema.GetComponentType<Position>();
+            int scaleType = world.Schema.GetComponentType<Scale>();
             foreach (Chunk chunk in world.Chunks)
             {
                 Definition definition = chunk.Definition;
-                if (definition.ContainsComponent(canvasType) && definition.ContainsComponent(positionType) && definition.ContainsComponent(scaleType) && !definition.ContainsTag(TagType.Disabled))
+                if (definition.ContainsComponent(canvasType) && definition.ContainsComponent(positionType) && definition.ContainsComponent(scaleType) && !definition.ContainsTag(Schema.DisabledTagType))
                 {
                     ReadOnlySpan<uint> entities = chunk.Entities;
-                    Span<IsCanvas> canvasComponents = chunk.GetComponents<IsCanvas>(canvasType);
-                    Span<Position> positionComponents = chunk.GetComponents<Position>(positionType);
-                    Span<Scale> scaleComponents = chunk.GetComponents<Scale>(scaleType);
+                    ComponentEnumerator<IsCanvas> canvasComponents = chunk.GetComponents<IsCanvas>(canvasType);
+                    ComponentEnumerator<Position> positionComponents = chunk.GetComponents<Position>(positionType);
+                    ComponentEnumerator<Scale> scaleComponents = chunk.GetComponents<Scale>(scaleType);
                     for (int i = 0; i < entities.Length; i++)
                     {
                         uint canvasEntity = entities[i];
@@ -78,7 +81,7 @@ namespace UI.Systems
             }
         }
 
-        void ISystem.Finish(in SystemContainer systemContainer, in World world)
+        void ISystem.Finish(in SystemContext context, in World world)
         {
         }
     }

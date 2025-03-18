@@ -20,12 +20,13 @@ namespace UI.Systems.Tests
 
             world.AddComponent(triggerA, (byte)1);
             world.AddComponent(triggerB, (byte)2);
-            world.AddComponent(triggerC, (int)3);
+            world.AddComponent(triggerC, 3);
 
             simulator.Update(TimeSpan.FromSeconds(0.1f));
 
             Assert.That(world.ContainsComponent<byte>(triggerA), Is.True);
             Assert.That(world.ContainsComponent<byte>(triggerB), Is.True);
+            Assert.That(world.ContainsComponent<int>(triggerC), Is.True);
 
             world.GetComponent<IsTrigger>(triggerA).filter = new(&SelectFirstEntity);
             world.GetComponent<IsTrigger>(triggerB).filter = new(&SelectFirstEntity);

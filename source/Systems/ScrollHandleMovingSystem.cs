@@ -1,11 +1,10 @@
-﻿using Collections;
-using UI.Components;
+﻿using Collections.Generic;
 using Simulation;
 using System;
 using System.Numerics;
 using Transforms.Components;
+using UI.Components;
 using Worlds;
-using Collections.Generic;
 
 namespace UI.Systems
 {
@@ -17,40 +16,26 @@ namespace UI.Systems
         private uint currentPointer;
         private Vector2 dragOffset;
 
-        private ScrollHandleMovingSystem(List<uint> scrollHandleEntities, List<uint> scrollRegionEntities)
+        public ScrollHandleMovingSystem()
         {
-            this.scrollHandleEntities = scrollHandleEntities;
-            this.scrollRegionEntities = scrollRegionEntities;
+            scrollHandleEntities = new(16);
+            scrollRegionEntities = new(16);
             currentScrollHandleEntity = default;
             currentPointer = default;
             dragOffset = default;
         }
 
-        void ISystem.Start(in SystemContainer systemContainer, in World world)
+        public readonly void Dispose()
         {
-            if (systemContainer.World == world)
-            {
-                List<uint> scrollHandleEntities = new();
-                List<uint> scrollRegionEntities = new();
-                systemContainer.Write(new ScrollHandleMovingSystem(scrollHandleEntities, scrollRegionEntities));
-            }
+            scrollRegionEntities.Dispose();
+            scrollHandleEntities.Dispose();
         }
 
-        void ISystem.Update(in SystemContainer systemContainer, in World world, in TimeSpan delta)
+        readonly void ISystem.Start(in SystemContext context, in World world)
         {
-            Update(world);
         }
 
-        void ISystem.Finish(in SystemContainer systemContainer, in World world)
-        {
-            if (systemContainer.World == world)
-            {
-                scrollRegionEntities.Dispose();
-                scrollHandleEntities.Dispose();
-            }
-        }
-
-        private void Update(World world)
+        void ISystem.Update(in SystemContext context, in World world, in TimeSpan delta)
         {
             ComponentQuery<IsScrollBar> scrollBarQuery = new(world);
             foreach (var s in scrollBarQuery)
@@ -147,6 +132,10 @@ namespace UI.Systems
 
             scrollHandleEntities.Clear();
             scrollRegionEntities.Clear();
+        }
+
+        readonly void ISystem.Finish(in SystemContext context, in World world)
+        {
         }
 
         private static Vector2 GetScrollBarValue(World world, uint scrollHandleEntity, Vector2 pointerPosition)
