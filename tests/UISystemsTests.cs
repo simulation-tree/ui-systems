@@ -19,18 +19,18 @@ namespace UI.Systems.Tests
     {
         static UISystemsTests()
         {
-            TypeRegistry.Load<RenderingTypeBank>();
-            TypeRegistry.Load<MaterialsTypeBank>();
-            TypeRegistry.Load<UITypeBank>();
-            TypeRegistry.Load<AutomationsTypeBank>();
-            TypeRegistry.Load<TransformsTypeBank>();
-            TypeRegistry.Load<MeshesTypeBank>();
-            TypeRegistry.Load<DataTypeBank>();
-            TypeRegistry.Load<FontsTypeBank>();
-            TypeRegistry.Load<TexturesTypeBank>();
-            TypeRegistry.Load<CamerasTypeBank>();
-            TypeRegistry.Load<TextRenderingTypeBank>();
-            TypeRegistry.Load<UISystemsTestsTypeBank>();
+            MetadataRegistry.Load<RenderingTypeBank>();
+            MetadataRegistry.Load<MaterialsTypeBank>();
+            MetadataRegistry.Load<UITypeBank>();
+            MetadataRegistry.Load<AutomationsTypeBank>();
+            MetadataRegistry.Load<TransformsTypeBank>();
+            MetadataRegistry.Load<MeshesTypeBank>();
+            MetadataRegistry.Load<DataTypeBank>();
+            MetadataRegistry.Load<FontsTypeBank>();
+            MetadataRegistry.Load<TexturesTypeBank>();
+            MetadataRegistry.Load<CamerasTypeBank>();
+            MetadataRegistry.Load<TextRenderingTypeBank>();
+            MetadataRegistry.Load<UISystemsTestsTypeBank>();
         }
         protected override void SetUp()
         {
