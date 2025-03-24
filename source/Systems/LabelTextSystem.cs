@@ -78,7 +78,7 @@ namespace UI.Systems
                             if (targetText.Length != result.Length)
                             {
                                 //make sure destination array matches length
-                                targetText.Length = result.Length;
+                                targetText.Resize(result.Length);
                                 textIsDifferent = true;
                             }
                             else
