@@ -45,7 +45,7 @@ namespace UI.Tests
         }
 
         [UnmanagedCallersOnly]
-        private static Boolean ReplaceNoun(TryProcessLabel.Input input)
+        private static Bool ReplaceNoun(TryProcessLabel.Input input)
         {
             if (input.OriginalText.IndexOf(NounToken) != -1)
             {
@@ -59,7 +59,7 @@ namespace UI.Tests
         }
 
         [UnmanagedCallersOnly]
-        private static Boolean ReplaceVerb(TryProcessLabel.Input input)
+        private static Bool ReplaceVerb(TryProcessLabel.Input input)
         {
             if (input.OriginalText.IndexOf(VerbToken) != -1)
             {
