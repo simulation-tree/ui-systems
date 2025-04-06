@@ -1,5 +1,6 @@
 ﻿using Simulation;
 using System;
+using System.Diagnostics;
 using System.Numerics;
 using Transforms.Components;
 using UI.Components;
@@ -33,6 +34,8 @@ namespace UI.Systems
         {
             //destroy drop shadows if their foreground doesnt exist anymore
             int dropShadowComponent = world.Schema.GetComponentType<IsDropShadow>();
+            Span<(uint, bool)> setEnabled = stackalloc (uint, bool)[256];
+            int setEnabledCount = 0;
             foreach (Chunk chunk in world.Chunks)
             {
                 if (chunk.Definition.ContainsComponent(dropShadowComponent))
@@ -50,10 +53,17 @@ namespace UI.Systems
                         }
                         else
                         {
-                            world.SetEnabled(entity, world.IsEnabled(foregroundEntity));
+                            bool foregroundEnabled = world.IsEnabled(foregroundEntity);
+                            setEnabled[setEnabledCount++] = (entity, foregroundEnabled);
                         }
                     }
                 }
+            }
+
+            for (int i = 0; i < setEnabledCount; i++)
+            {
+                (uint entity, bool enabled) = setEnabled[i];
+                world.SetEnabled(entity, enabled);
             }
 
             if (operation.Count > 0)
@@ -81,6 +91,7 @@ namespace UI.Systems
             {
                 operation.AddComponent(Scale.Default);
             }
+
 
             if (operation.Count > 0)
             {
