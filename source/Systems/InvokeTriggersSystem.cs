@@ -20,16 +20,16 @@ namespace UI.Systems
         }
 
         public readonly void Dispose()
-		{
-			foreach (int functionHash in entitiesPerTrigger.Keys)
-			{
-				entitiesPerTrigger[functionHash].Dispose();
-			}
+        {
+            foreach (int functionHash in entitiesPerTrigger.Keys)
+            {
+                entitiesPerTrigger[functionHash].Dispose();
+            }
 
-			functions.Dispose();
-			entitiesPerTrigger.Dispose();
-			currentEntities.Dispose();
-		}
+            functions.Dispose();
+            entitiesPerTrigger.Dispose();
+            currentEntities.Dispose();
+        }
 
         void ISystem.Start(in SystemContext context, in World world)
         {
