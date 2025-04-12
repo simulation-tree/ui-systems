@@ -26,11 +26,13 @@ namespace UI.Systems
         private ASCIIText256 currentCharacters;
         private DateTime nextPress;
         private bool lastAnyPointerPressed;
+        private readonly Operation operation;
         private readonly Library clipboard;
 
         public TextFieldEditingSystem()
         {
             clipboard = new();
+            operation = new();
             lastSelections = new();
             lastPressedCharacters = default;
             currentCharacters = default;
@@ -41,6 +43,7 @@ namespace UI.Systems
         public readonly void Dispose()
         {
             lastSelections.Dispose();
+            operation.Dispose();
             clipboard.Dispose();
         }
 
@@ -240,7 +243,11 @@ namespace UI.Systems
                     }
                     else
                     {
-                        world.SetEnabled(cursorEntity, false);
+                        if (world.IsEnabled(cursorEntity))
+                        {
+                            //world.SetEnabled(cursorEntity, false);
+                            operation.SelectEntity(cursorEntity);
+                        }
                     }
                 }
 
@@ -259,6 +266,13 @@ namespace UI.Systems
                         component.editing = false;
                     }
                 }
+            }
+
+            if (operation.Count > 0)
+            {
+                operation.DisableEntities();
+                operation.Perform(world);
+                operation.Clear();
             }
         }
 

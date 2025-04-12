@@ -42,6 +42,8 @@ namespace UI.Systems
             FindScrollBarLinkEntities(world);
 
             ComponentQuery<IsView, LocalToWorld> viewQuery = new(world);
+            Span<(uint contentEntity, Vector4 scissor)> missingScissors = stackalloc (uint, Vector4)[256]; //todo: this could fail
+            int missingScissorCount = 0;
             foreach (var v in viewQuery)
             {
                 uint scrollViewEntity = v.entity;
@@ -135,7 +137,8 @@ namespace UI.Systems
                 ref RendererScissor scissor = ref world.TryGetComponent<RendererScissor>(contentEntity, out bool contains);
                 if (!contains)
                 {
-                    world.AddComponent(contentEntity, new RendererScissor(region));
+                    //world.AddComponent(contentEntity, new RendererScissor(region));
+                    missingScissors[missingScissorCount++] = (contentEntity, region);
                 }
                 else
                 {
@@ -156,6 +159,12 @@ namespace UI.Systems
                 ref Position position = ref world.GetComponent<Position>(contentEntity);
                 position.value.X = 1 - scrollValue.X;
                 position.value.Y = 1 - scrollValue.Y;
+            }
+
+            for (int i = 0; i < missingScissorCount; i++)
+            {
+                (uint contentEntity, Vector4 scissor) = missingScissors[i];
+                world.AddComponent(contentEntity, new RendererScissor(scissor));
             }
         }
 
