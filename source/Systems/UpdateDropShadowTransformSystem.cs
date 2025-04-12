@@ -1,6 +1,5 @@
 ﻿using Simulation;
 using System;
-using System.Diagnostics;
 using System.Numerics;
 using Transforms.Components;
 using UI.Components;

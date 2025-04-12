@@ -10,7 +10,6 @@ using TextRendering;
 using Textures;
 using Transforms;
 using Types;
-using UI.Systems;
 using Worlds;
 
 namespace UI.Systems.Tests
