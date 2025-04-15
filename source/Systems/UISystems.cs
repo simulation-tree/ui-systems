@@ -1,5 +1,7 @@
-﻿using Simulation;
+﻿using Rendering;
+using Simulation;
 using System;
+using UI.Systems.RenderEnginePlugins;
 using Worlds;
 
 namespace UI.Systems
@@ -10,9 +12,9 @@ namespace UI.Systems
         {
         }
 
-        void ISystem.Start(in SystemContext context, in World world)
+        readonly void ISystem.Start(in SystemContext context, in World world)
         {
-            if (context.World == world)
+            if (context.IsSimulatorWorld(world))
             {
                 context.AddSystem(new CanvasSystem());
                 context.AddSystem(new SelectionSystem());
@@ -29,16 +31,18 @@ namespace UI.Systems
                 context.AddSystem(new TextFieldEditingSystem());
                 context.AddSystem(new DropdownMenusSystem());
                 context.AddSystem(new UpdateDropShadowTransformSystem());
+
+                new RenderEnginePlugin(world, SortUIObjects.Function);
             }
         }
 
-        void ISystem.Update(in SystemContext context, in World world, in TimeSpan delta)
+        readonly void ISystem.Update(in SystemContext context, in World world, in TimeSpan delta)
         {
         }
 
-        void ISystem.Finish(in SystemContext context, in World world)
+        readonly void ISystem.Finish(in SystemContext context, in World world)
         {
-            if (context.World == world)
+            if (context.IsSimulatorWorld(world))
             {
                 context.RemoveSystem<UpdateDropShadowTransformSystem>();
                 context.RemoveSystem<DropdownMenusSystem>();
