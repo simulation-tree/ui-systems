@@ -133,7 +133,7 @@ namespace UI.Systems
                             positionValue.Y -= originalHeight * optionCount;
                         }
 
-                        position.value = positionValue + new Vector3(-ShadowDistance, -ShadowDistance, Settings.ZScale * -2f);
+                        position.value = positionValue + new Vector3(-ShadowDistance, -ShadowDistance, Settings.ZScale * -1.5f);
                         scale.value = scaleValue + new Vector3(ShadowDistance * 2f, ShadowDistance * 2f, 1f);
 
                         //update the ltw of the mesh to match foreground
