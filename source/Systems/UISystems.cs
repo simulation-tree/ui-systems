@@ -32,7 +32,7 @@ namespace UI.Systems
                 context.AddSystem(new DropdownMenusSystem());
                 context.AddSystem(new UpdateDropShadowTransformSystem());
 
-                new RenderEnginePlugin(world, SortUIObjects.Function);
+                RenderEnginePlugin.Create(world, SortUIObjects.Function);
             }
         }
 

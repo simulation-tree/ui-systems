@@ -21,14 +21,14 @@ namespace UI.Systems.RenderEnginePlugins
         }
 
         [UnmanagedCallersOnly]
-        public static void Invoke(RenderEnginePluginFunction.Input input)
+        private static void Invoke(RenderEnginePluginFunction.Input input)
         {
             World world = input.world;
             if (world.Schema.ContainsComponentType<UISettings>())
             {
                 if (world.TryGetFirst(out Settings settings))
                 {
-                    if (settings.IsDropShadowMaterial(input.materialEntity))
+                    if (settings.IsUIMaterial(input.materialEntity))
                     {
                         int positionType = world.Schema.GetComponentType<Position>();
                         Span<RenderEntity> entities = input.Entities;
