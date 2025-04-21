@@ -14,10 +14,13 @@ namespace UI.Systems.RenderEnginePlugins
     public static class SortUIObjects
     {
         public static readonly RenderEnginePluginFunction Function;
+        private static readonly uint[] materialEntities;
+        private static int materialCount = 0;
 
         unsafe static SortUIObjects()
         {
             Function = new(&Invoke);
+            materialEntities = new uint[32];
         }
 
         [UnmanagedCallersOnly]
@@ -28,37 +31,35 @@ namespace UI.Systems.RenderEnginePlugins
             {
                 if (world.TryGetFirst(out Settings settings))
                 {
-                    if (settings.IsUIMaterial(input.materialEntity))
+                    materialCount = settings.GetMaterials(materialEntities.AsSpan());
+                    int positionType = world.Schema.GetComponentType<Position>();
+                    Span<RenderEntity> entities = input.Entities;
+                    Span<(RenderEntity renderEntity, float z)> span = stackalloc (RenderEntity, float)[entities.Length];
+                    for (int i = 0; i < entities.Length; i++)
                     {
-                        int positionType = world.Schema.GetComponentType<Position>();
-                        Span<RenderEntity> entities = input.Entities;
-                        Span<(RenderEntity renderEntity, float z)> span = stackalloc (RenderEntity, float)[entities.Length];
-                        for (int i = 0; i < entities.Length; i++)
+                        RenderEntity renderEntity = entities[i];
+                        if (world.TryGetComponent(renderEntity.entity, positionType, out Position position))
                         {
-                            RenderEntity renderEntity = entities[i];
-                            if (world.TryGetComponent(renderEntity.entity, positionType, out Position position))
-                            {
-                                span[i] = (renderEntity, position.value.Z);
-                            }
-                            else
-                            {
-                                span[i] = (renderEntity, 0);
-                            }
+                            span[i] = (renderEntity, position.value.Z);
                         }
+                        else
+                        {
+                            span[i] = (renderEntity, 0);
+                        }
+                    }
 
-                        span.Sort(SortByZPosition);
-                        for (int i = 0; i < entities.Length; i++)
-                        {
-                            entities[i] = span[i].renderEntity;
-                        }
+                    span.Sort(SortByZPosition);
+                    for (int i = 0; i < entities.Length; i++)
+                    {
+                        entities[i] = span[i].renderEntity;
                     }
                 }
             }
         }
 
-        private static int SortByZPosition((RenderEntity, float z) x, (RenderEntity, float z) y)
+        private static int SortByZPosition((RenderEntity renderEntity, float position) a, (RenderEntity renderEntity, float position) b)
         {
-            return x.z.CompareTo(y.z);
+            return a.position.CompareTo(b.position);
         }
     }
 }
