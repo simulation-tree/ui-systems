@@ -27,7 +27,7 @@ namespace UI.Systems
             lastPressedPointers.Dispose();
         }
 
-        void ISystem.Start(in SystemContext context, in World world)
+        readonly void ISystem.Start(in SystemContext context, in World world)
         {
         }
 
@@ -140,7 +140,7 @@ namespace UI.Systems
             }
         }
 
-        void ISystem.Finish(in SystemContext context, in World world)
+        readonly void ISystem.Finish(in SystemContext context, in World world)
         {
         }
     }
