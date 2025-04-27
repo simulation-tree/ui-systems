@@ -95,7 +95,7 @@ namespace UI.Systems
             if (operation.Count > 0)
             {
                 operation.Perform(world);
-                operation.Clear();
+                operation.Reset();
             }
 
             //do the thing

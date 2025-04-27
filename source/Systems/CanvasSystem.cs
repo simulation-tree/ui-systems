@@ -10,6 +10,7 @@ using Worlds;
 
 namespace UI.Systems
 {
+    [SystemOrder(-1)]
     public readonly partial struct CanvasSystem : ISystem
     {
         readonly void IDisposable.Dispose()

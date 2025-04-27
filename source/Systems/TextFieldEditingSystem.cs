@@ -272,7 +272,7 @@ namespace UI.Systems
             {
                 operation.DisableEntities();
                 operation.Perform(world);
-                operation.Clear();
+                operation.Reset();
             }
         }
 
