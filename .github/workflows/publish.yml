@@ -57,6 +57,13 @@ jobs:
           token: ${{ secrets.PAT }}
           path: types
       
+      - name: Checkout `serialization`
+        uses: actions/checkout@v4.1.2
+        with:
+          repository: simulation-tree/serialization
+          token: ${{ secrets.PAT }}
+          path: serialization
+      
       - name: Checkout `unmanaged`
         uses: actions/checkout@v4.1.2
         with:
