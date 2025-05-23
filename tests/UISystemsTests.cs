@@ -35,14 +35,14 @@ namespace UI.Systems.Tests
         protected override void SetUp()
         {
             base.SetUp();
-            simulator.Add(new ComponentMixingSystem());
-            simulator.Add(new InvokeTriggersSystem());
+            Simulator.Add(new ComponentMixingSystem());
+            Simulator.Add(new InvokeTriggersSystem());
         }
 
         protected override void TearDown()
         {
-            simulator.Remove<InvokeTriggersSystem>();
-            simulator.Remove<ComponentMixingSystem>();
+            Simulator.Remove<InvokeTriggersSystem>();
+            Simulator.Remove<ComponentMixingSystem>();
             base.TearDown();
         }
 

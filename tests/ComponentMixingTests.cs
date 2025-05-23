@@ -13,7 +13,7 @@ namespace UI.Systems.Tests
             world.AddComponent(entity, new Second(9123));
             world.AddComponent(entity, ComponentMix.Create<First, Second, Result>(ComponentMix.Operation.UnsignedAdd, 1, world.Schema));
 
-            Update();
+            Simulator.Update();
 
             Assert.That(world.ContainsComponent<Result>(entity), Is.True);
             int first = world.GetComponent<First>(entity).value;
@@ -25,7 +25,7 @@ namespace UI.Systems.Tests
             mix.operation = ComponentMix.Operation.SignedAdd;
             world.SetComponent(entity, new First(-424));
 
-            Update();
+            Simulator.Update();
 
             first = world.GetComponent<First>(entity).value;
             second = world.GetComponent<Second>(entity).value;
@@ -41,7 +41,7 @@ namespace UI.Systems.Tests
             world.AddComponent(entity, new SecondFloat(0.5f));
             world.AddComponent(entity, ComponentMix.Create<FirstFloat, SecondFloat, ResultFloat>(ComponentMix.Operation.FloatingMultiply, 1, world.Schema));
 
-            Update();
+            Simulator.Update();
 
             Assert.That(world.ContainsComponent<ResultFloat>(entity), Is.True);
             float first = world.GetComponent<FirstFloat>(entity).value;
@@ -52,7 +52,7 @@ namespace UI.Systems.Tests
             mix.operation = ComponentMix.Operation.FloatingAdd;
             world.SetComponent(entity, new FirstFloat(-424.5f));
 
-            Update();
+            Simulator.Update();
 
             first = world.GetComponent<FirstFloat>(entity).value;
             second = world.GetComponent<SecondFloat>(entity).value;
@@ -68,7 +68,7 @@ namespace UI.Systems.Tests
             world.AddComponent(entity, new SecondVector(new Vector3(0.5f, 0.5f, 0.5f)));
             world.AddComponent(entity, ComponentMix.Create<FirstVector, SecondVector, ResultVector>(ComponentMix.Operation.FloatingMultiply, 3, world.Schema));
 
-            Update();
+            Simulator.Update();
 
             Assert.That(world.ContainsComponent<ResultVector>(entity), Is.True);
             Vector3 first = world.GetComponent<FirstVector>(entity).value;

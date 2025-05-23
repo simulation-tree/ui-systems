@@ -5,7 +5,7 @@ using UI.Systems.RenderEnginePlugins;
 
 namespace UI.Systems
 {
-    public class UISystemsBank : ISystem, IDisposable
+    public class UISystemsBank : IDisposable
     {
         public readonly Simulator simulator;
 
@@ -47,10 +47,6 @@ namespace UI.Systems
             simulator.Remove<ResizingSystem>();
             simulator.Remove<SelectionSystem>();
             simulator.Remove<CanvasSystem>();
-        }
-
-        void ISystem.Update(Simulator simulator, double deltaTime)
-        {
         }
     }
 }
