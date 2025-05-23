@@ -8,7 +8,7 @@ using Worlds;
 
 namespace UI.Systems
 {
-    public readonly partial struct ComponentMixingSystem : ISystem
+    public class ComponentMixingSystem : ISystem, IDisposable
     {
         private static readonly MixFunction[] functions;
 
@@ -36,17 +36,14 @@ namespace UI.Systems
             requests = new(4);
         }
 
-        public readonly void Dispose()
+        public void Dispose()
         {
             requests.Dispose();
         }
 
-        void ISystem.Start(in SystemContext context, in World world)
+        void ISystem.Update(Simulator simulator, double deltaTime)
         {
-        }
-
-        void ISystem.Update(in SystemContext context, in World world, in TimeSpan delta)
-        {
+            World world = simulator.world;
             ComponentQuery<ComponentMix> query = new(world);
             query.ExcludeDisabled(true);
             foreach (var x in query)
@@ -60,11 +57,7 @@ namespace UI.Systems
             requests.Clear();
         }
 
-        void ISystem.Finish(in SystemContext context, in World world)
-        {
-        }
-
-        private readonly void MixComponents(World world, ReadOnlySpan<Request> requests)
+        private void MixComponents(World world, ReadOnlySpan<Request> requests)
         {
             foreach (Request request in requests)
             {

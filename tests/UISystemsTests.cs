@@ -31,11 +31,19 @@ namespace UI.Systems.Tests
             MetadataRegistry.Load<TextRenderingMetadataBank>();
             MetadataRegistry.Load<UISystemsTestsMetadataBank>();
         }
+
         protected override void SetUp()
         {
             base.SetUp();
-            simulator.AddSystem(new ComponentMixingSystem());
-            simulator.AddSystem(new InvokeTriggersSystem());
+            simulator.Add(new ComponentMixingSystem());
+            simulator.Add(new InvokeTriggersSystem());
+        }
+
+        protected override void TearDown()
+        {
+            simulator.Remove<InvokeTriggersSystem>();
+            simulator.Remove<ComponentMixingSystem>();
+            base.TearDown();
         }
 
         protected override Schema CreateSchema()

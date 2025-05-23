@@ -8,7 +8,7 @@ using Worlds;
 
 namespace UI.Systems
 {
-    public partial struct PointerDraggingSelectableSystem : ISystem
+    public class PointerDraggingSelectableSystem : ISystem, IDisposable
     {
         private readonly List<Entity> pressedStates;
         private readonly List<uint> draggableEntities;
@@ -26,18 +26,15 @@ namespace UI.Systems
             lastPosition = default;
         }
 
-        public readonly void Dispose()
+        public void Dispose()
         {
             draggableEntities.Dispose();
             pressedStates.Dispose();
         }
 
-        readonly void ISystem.Start(in SystemContext context, in World world)
+        void ISystem.Update(Simulator simulator, double deltaTime)
         {
-        }
-
-        void ISystem.Update(in SystemContext context, in World world, in TimeSpan delta)
-        {
+            World world = simulator.world;
             FindDraggableEntities(world);
 
             ComponentQuery<IsPointer> query = new(world);
@@ -102,11 +99,7 @@ namespace UI.Systems
             }
         }
 
-        readonly void ISystem.Finish(in SystemContext context, in World world)
-        {
-        }
-
-        private readonly void FindDraggableEntities(World world)
+        private void FindDraggableEntities(World world)
         {
             draggableEntities.Clear();
 

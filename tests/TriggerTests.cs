@@ -1,5 +1,4 @@
-﻿using System;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 using UI.Components;
 using UI.Functions;
 using Worlds;
@@ -22,7 +21,7 @@ namespace UI.Systems.Tests
             world.AddComponent(triggerB, (byte)2);
             world.AddComponent(triggerC, 3);
 
-            simulator.Update(TimeSpan.FromSeconds(0.1f));
+            Update(0.1);
 
             Assert.That(world.ContainsComponent<byte>(triggerA), Is.True);
             Assert.That(world.ContainsComponent<byte>(triggerB), Is.True);
@@ -32,7 +31,7 @@ namespace UI.Systems.Tests
             world.GetComponent<IsTrigger>(triggerB).filter = new(&SelectFirstEntity);
             world.GetComponent<IsTrigger>(triggerC).filter = new(&SelectFirstEntity);
 
-            simulator.Update(TimeSpan.FromSeconds(0.1f));
+            Update(0.1);
 
             Assert.That(world.ContainsComponent<byte>(triggerA), Is.False);
             Assert.That(world.ContainsComponent<byte>(triggerB), Is.True);

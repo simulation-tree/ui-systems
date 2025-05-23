@@ -7,7 +7,7 @@ using Worlds;
 
 namespace UI.Systems
 {
-    public readonly partial struct UpdateDropShadowTransformSystem : ISystem
+    public class UpdateDropShadowTransformSystem : ISystem, IDisposable
     {
         private readonly Operation operation;
 
@@ -16,22 +16,15 @@ namespace UI.Systems
             operation = new();
         }
 
-        public readonly void Dispose()
+        public void Dispose()
         {
             operation.Dispose();
         }
 
-        void ISystem.Finish(in SystemContext context, in World world)
-        {
-        }
-
-        void ISystem.Start(in SystemContext context, in World world)
-        {
-        }
-
-        void ISystem.Update(in SystemContext context, in World world, in TimeSpan delta)
+        void ISystem.Update(Simulator simulator, double deltaTime)
         {
             //destroy drop shadows if their foreground doesnt exist anymore
+            World world = simulator.world;
             int dropShadowComponent = world.Schema.GetComponentType<IsDropShadow>();
             Span<(uint, bool)> setEnabled = stackalloc (uint, bool)[256];
             int setEnabledCount = 0;

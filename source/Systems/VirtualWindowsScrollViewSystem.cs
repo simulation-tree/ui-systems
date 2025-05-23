@@ -7,18 +7,11 @@ using Worlds;
 
 namespace UI.Systems
 {
-    public readonly partial struct VirtualWindowsScrollViewSystem : ISystem
+    public class VirtualWindowsScrollViewSystem : ISystem
     {
-        readonly void IDisposable.Dispose()
+        void ISystem.Update(Simulator simulator, double deltaTime)
         {
-        }
-
-        void ISystem.Start(in SystemContext context, in World world)
-        {
-        }
-
-        void ISystem.Update(in SystemContext context, in World world, in TimeSpan delta)
-        {
+            World world = simulator.world;
             int ltwType = world.Schema.GetComponentType<LocalToWorld>();
 
             ComponentQuery<IsVirtualWindow> query = new(world);
@@ -74,10 +67,6 @@ namespace UI.Systems
                     //both
                 }
             }
-        }
-
-        void ISystem.Finish(in SystemContext context, in World world)
-        {
         }
 
         private static (float min, float max) GetMinMax(World world, uint entity, int ltwType, int childCount)

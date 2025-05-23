@@ -10,7 +10,7 @@ using Worlds;
 
 namespace UI.Systems
 {
-    public readonly partial struct ScrollViewSystem : ISystem
+    public class ScrollViewSystem : ISystem, IDisposable
     {
         private readonly List<uint> scrollBarLinkEntities;
 
@@ -19,26 +19,14 @@ namespace UI.Systems
             scrollBarLinkEntities = new(4);
         }
 
-        public readonly void Dispose()
+        public void Dispose()
         {
             scrollBarLinkEntities.Dispose();
         }
 
-        void ISystem.Start(in SystemContext context, in World world)
+        void ISystem.Update(Simulator simulator, double deltaTime)
         {
-        }
-
-        void ISystem.Update(in SystemContext context, in World world, in TimeSpan delta)
-        {
-            Update(world);
-        }
-
-        void ISystem.Finish(in SystemContext context, in World world)
-        {
-        }
-
-        private readonly void Update(World world)
-        {
+            World world = simulator.world;
             FindScrollBarLinkEntities(world);
 
             ComponentQuery<IsView, LocalToWorld> viewQuery = new(world);
@@ -168,7 +156,7 @@ namespace UI.Systems
             }
         }
 
-        private readonly void FindScrollBarLinkEntities(World world)
+        private void FindScrollBarLinkEntities(World world)
         {
             scrollBarLinkEntities.Clear();
             ComponentQuery<ViewScrollBarLink> query = new(world);

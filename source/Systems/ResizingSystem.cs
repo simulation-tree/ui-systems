@@ -9,7 +9,7 @@ using Worlds;
 
 namespace UI.Systems
 {
-    public partial struct ResizingSystem : ISystem
+    public class ResizingSystem : ISystem, IDisposable
     {
         private readonly Dictionary<Entity, bool> lastPressedPointers;
         private Entity resizingEntity;
@@ -22,17 +22,14 @@ namespace UI.Systems
             lastPressedPointers = new(4);
         }
 
-        public readonly void Dispose()
+        public void Dispose()
         {
             lastPressedPointers.Dispose();
         }
 
-        readonly void ISystem.Start(in SystemContext context, in World world)
+        void ISystem.Update(Simulator simulator, double deltaTime)
         {
-        }
-
-        void ISystem.Update(in SystemContext context, in World world, in TimeSpan delta)
-        {
+            World world = simulator.world;
             int pointerType = world.Schema.GetComponentType<IsPointer>();
             int resizableType = world.Schema.GetComponentType<IsResizable>();
             int positionType = world.Schema.GetComponentType<Position>();
@@ -138,10 +135,6 @@ namespace UI.Systems
                     position.value.Y += pointerDelta.Y;
                 }
             }
-        }
-
-        readonly void ISystem.Finish(in SystemContext context, in World world)
-        {
         }
     }
 }

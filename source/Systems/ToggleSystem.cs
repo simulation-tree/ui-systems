@@ -6,7 +6,7 @@ using Worlds;
 
 namespace UI.Systems
 {
-    public readonly partial struct ToggleSystem : ISystem
+    public class ToggleSystem : ISystem, IDisposable
     {
         private readonly List<uint> pressedPointers;
         private readonly List<uint> toggleEntities;
@@ -17,29 +17,18 @@ namespace UI.Systems
             toggleEntities = new(4);
         }
 
-        public readonly void Dispose()
+        public void Dispose()
         {
             toggleEntities.Dispose();
             pressedPointers.Dispose();
         }
 
-        void ISystem.Start(in SystemContext context, in World world)
+        void ISystem.Update(Simulator simulator, double deltaTime)
         {
-        }
-
-        void ISystem.Update(in SystemContext context, in World world, in TimeSpan delta)
-        {
-            Update(world);
-        }
-
-        void ISystem.Finish(in SystemContext context, in World world)
-        {
-        }
-
-        private readonly void Update(World world)
-        {
+            World world = simulator.world;
             FindToggleEntities(world);
 
+            Span<uint> toggleEntities = this.toggleEntities.AsSpan();
             int pointerComponent = world.Schema.GetComponentType<IsPointer>();
             foreach (Chunk chunk in world.Chunks)
             {
@@ -91,7 +80,7 @@ namespace UI.Systems
             }
         }
 
-        private readonly void FindToggleEntities(World world)
+        private void FindToggleEntities(World world)
         {
             toggleEntities.Clear();
             int toggleComponent = world.Schema.GetComponentType<IsToggle>();

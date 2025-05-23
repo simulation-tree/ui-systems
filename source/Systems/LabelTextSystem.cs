@@ -9,7 +9,7 @@ using Worlds;
 
 namespace UI.Systems
 {
-    public readonly partial struct LabelTextSystem : ISystem
+    public class LabelTextSystem : ISystem, IDisposable
     {
         private static readonly long charTypeHash;
 
@@ -29,19 +29,16 @@ namespace UI.Systems
             tokenEntities = new();
         }
 
-        public readonly void Dispose()
+        public void Dispose()
         {
             tokenEntities.Dispose();
             processors.Dispose();
             result.Dispose();
         }
 
-        readonly void ISystem.Start(in SystemContext context, in World world)
+        void ISystem.Update(Simulator simulator, double deltaTime)
         {
-        }
-
-        readonly void ISystem.Update(in SystemContext context, in World world, in TimeSpan delta)
-        {
+            World world = simulator.world;
             Schema schema = world.Schema;
             int textRendererType = schema.GetComponentType<IsTextRenderer>();
             int processorType = schema.GetComponentType<IsLabelProcessor>();
@@ -98,7 +95,7 @@ namespace UI.Systems
             }
         }
 
-        private readonly void ReplaceTokens(World world, Text text)
+        private void ReplaceTokens(World world, Text text)
         {
             Span<char> span = text.AsSpan();
             if (span.Contains('{'))
@@ -209,7 +206,7 @@ namespace UI.Systems
             }
         }
 
-        private readonly void ProcessLabel(World world, Span<TryProcessLabel> processors, rint textMeshReference, uint labelEntity)
+        private void ProcessLabel(World world, Span<TryProcessLabel> processors, rint textMeshReference, uint labelEntity)
         {
             Span<char> originalText = world.GetArray<LabelCharacter>(labelEntity).AsSpan<char>();
             result.CopyFrom(originalText);
@@ -241,10 +238,6 @@ namespace UI.Systems
                 request.loaded = false;
                 result.CopyTo(targetText.AsSpan<char>());
             }
-        }
-
-        readonly void ISystem.Finish(in SystemContext context, in World world)
-        {
         }
     }
 }

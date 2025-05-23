@@ -17,7 +17,7 @@ using Worlds;
 namespace UI.Systems
 {
     [SkipLocalsInit]
-    public partial struct TextFieldEditingSystem : ISystem
+    public class TextFieldEditingSystem : ISystem, IDisposable
     {
         private static readonly char[] controlCharacters = [' ', '.', ',', '_', '-', '+', '*', '/', '\n'];
 
@@ -40,19 +40,16 @@ namespace UI.Systems
             lastAnyPointerPressed = false;
         }
 
-        public readonly void Dispose()
+        public void Dispose()
         {
             lastSelections.Dispose();
             operation.Dispose();
             clipboard.Dispose();
         }
 
-        void ISystem.Start(in SystemContext context, in World world)
+        void ISystem.Update(Simulator simulator, double deltaTime)
         {
-        }
-
-        void ISystem.Update(in SystemContext context, in World world, in TimeSpan delta)
-        {
+            World world = simulator.world;
             ComponentQuery<IsTextField, LocalToWorld> textLabelQuery = new(world);
             foreach (var r in textLabelQuery)
             {
@@ -276,10 +273,6 @@ namespace UI.Systems
             }
         }
 
-        void ISystem.Finish(in SystemContext context, in World world)
-        {
-        }
-
         private static void InsertText(Label textLabel, string clipboardText, ref TextSelection selection)
         {
             int clipboardLength = clipboardText.Length;
@@ -357,7 +350,7 @@ namespace UI.Systems
             cursorPosition.value = localPosition;
         }
 
-        private readonly void UpdateHighlightToMatchPosition(World world, Label textLabel, Entity highlightEntity, ref TextSelection selection)
+        private void UpdateHighlightToMatchPosition(World world, Label textLabel, Entity highlightEntity, ref TextSelection selection)
         {
             ref TextSelection lastSelection = ref lastSelections.TryGetValue(highlightEntity, out bool contains);
             if (contains && lastSelection == selection)
@@ -477,16 +470,16 @@ namespace UI.Systems
                 }
 
                 Mesh highlightMesh = new Entity(world, meshEntity).As<Mesh>();
-                Mesh.Collection<Vector3> positions = highlightMesh.Positions;
-                Mesh.Collection<uint> indices = highlightMesh.Indices;
-                Mesh.Collection<Vector2> uvs = highlightMesh.UVs;
-                Mesh.Collection<Vector3> normals = highlightMesh.Normals;
-                Mesh.Collection<Vector4> colors = highlightMesh.Colors;
-                positions.CopyFrom(verticesList.GetSpan(faceCount * 4));
-                indices.CopyFrom(indicesList.GetSpan(faceCount * 6));
-                uvs.CopyFrom(uvList.GetSpan(faceCount * 4));
-                normals.CopyFrom(normalsList.GetSpan(faceCount * 4));
-                colors.CopyFrom(colorsList.GetSpan(faceCount * 4));
+                Span<Vector3> positions = highlightMesh.Positions;
+                Span<uint> indices = highlightMesh.Indices;
+                Span<Vector2> uvs = highlightMesh.UVs;
+                Span<Vector3> normals = highlightMesh.Normals;
+                Span<Vector4> colors = highlightMesh.Colors;
+                verticesList.GetSpan(faceCount * 4).CopyTo(positions);
+                indicesList.GetSpan(faceCount * 6).CopyTo(indices);
+                uvList.GetSpan(faceCount * 4).CopyTo(uvs);
+                normalsList.GetSpan(faceCount * 4).CopyTo(normals);
+                colorsList.GetSpan(faceCount * 4).CopyTo(colors);
             }
         }
 

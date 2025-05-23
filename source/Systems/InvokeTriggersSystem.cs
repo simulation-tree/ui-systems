@@ -6,7 +6,7 @@ using Worlds;
 
 namespace UI.Systems
 {
-    public readonly partial struct InvokeTriggersSystem : ISystem
+    public class InvokeTriggersSystem : ISystem, IDisposable
     {
         private readonly Array<Entity> currentEntities;
         private readonly Dictionary<int, List<Entity>> entitiesPerTrigger;
@@ -19,7 +19,7 @@ namespace UI.Systems
             functions = new(4);
         }
 
-        public readonly void Dispose()
+        public void Dispose()
         {
             foreach (int functionHash in entitiesPerTrigger.Keys)
             {
@@ -31,13 +31,10 @@ namespace UI.Systems
             currentEntities.Dispose();
         }
 
-        void ISystem.Start(in SystemContext context, in World world)
-        {
-        }
-
-        void ISystem.Update(in SystemContext context, in World world, in TimeSpan delta)
+        void ISystem.Update(Simulator simulator, double deltaTime)
         {
             //find new entities
+            World world = simulator.world;
             int triggerComponent = world.Schema.GetComponentType<IsTrigger>();
             foreach (Chunk chunk in world.Chunks)
             {
@@ -92,10 +89,6 @@ namespace UI.Systems
 
                 entities.Clear();
             }
-        }
-
-        void ISystem.Finish(in SystemContext context, in World world)
-        {
         }
     }
 }

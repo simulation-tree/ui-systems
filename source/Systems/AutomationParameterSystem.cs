@@ -8,7 +8,7 @@ using Worlds;
 
 namespace UI.Systems
 {
-    public readonly partial struct AutomationParameterSystem : ISystem
+    public class AutomationParameterSystem : ISystem, IDisposable
     {
         private readonly List<Entity> selectedEntities;
 
@@ -17,26 +17,18 @@ namespace UI.Systems
             selectedEntities = new(16);
         }
 
-        public readonly void Dispose()
+        public void Dispose()
         {
             selectedEntities.Dispose();
         }
 
-        readonly void ISystem.Start(in SystemContext context, in World world)
+        void ISystem.Update(Simulator simulator, double deltaTime)
         {
+            FindSelectedEntities(simulator.world);
+            UpdateSelectableParameters(simulator.world);
         }
 
-        void ISystem.Update(in SystemContext context, in World world, in TimeSpan delta)
-        {
-            FindSelectedEntities(world);
-            UpdateSelectableParameters(world);
-        }
-
-        readonly void ISystem.Finish(in SystemContext context, in World world)
-        {
-        }
-
-        private readonly void FindSelectedEntities(World world)
+        private void FindSelectedEntities(World world)
         {
             selectedEntities.Clear();
 
@@ -56,7 +48,7 @@ namespace UI.Systems
             }
         }
 
-        private readonly void UpdateSelectableParameters(World world)
+        private void UpdateSelectableParameters(World world)
         {
             ComponentQuery<IsSelectable, IsStateful> selectablesQuery = new(world);
             selectablesQuery.ExcludeDisabled(true);

@@ -10,20 +10,12 @@ using Worlds;
 
 namespace UI.Systems
 {
-    [SystemOrder(-1)]
-    public readonly partial struct CanvasSystem : ISystem
+    [SkipLocalsInit]
+    public class CanvasSystem : ISystem
     {
-        readonly void IDisposable.Dispose()
+        void ISystem.Update(Simulator simulator, double deltaTime)
         {
-        }
-
-        void ISystem.Start(in SystemContext context, in World world)
-        {
-        }
-
-        [SkipLocalsInit]
-        void ISystem.Update(in SystemContext context, in World world, in TimeSpan delta)
-        {
+            World world = simulator.world;
             Span<uint> destroyedCanvases = stackalloc uint[64];
             int destroyedCanvasCount = 0;
             int canvasType = world.Schema.GetComponentType<IsCanvas>();
@@ -80,10 +72,6 @@ namespace UI.Systems
             {
                 world.DestroyEntity(destroyedCanvases[i]);
             }
-        }
-
-        void ISystem.Finish(in SystemContext context, in World world)
-        {
         }
     }
 }

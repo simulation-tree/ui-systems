@@ -9,7 +9,7 @@ using Worlds;
 
 namespace UI.Systems
 {
-    public readonly partial struct SelectionSystem : ISystem
+    public class SelectionSystem : ISystem, IDisposable
     {
         private readonly Dictionary<Entity, PointerAction> pointerStates;
         private readonly List<(uint entity, LocalToWorld ltw)> selectableEntities;
@@ -20,18 +20,16 @@ namespace UI.Systems
             selectableEntities = new(4);
         }
 
-        public readonly void Dispose()
+        public void Dispose()
         {
             selectableEntities.Dispose();
             pointerStates.Dispose();
         }
 
-        void ISystem.Start(in SystemContext context, in World world)
-        {
-        }
 
-        void ISystem.Update(in SystemContext context, in World world, in TimeSpan delta)
+        void ISystem.Update(Simulator simulator, double deltaTime)
         {
+            World world = simulator.world;
             int pointerComponent = world.Schema.GetComponentType<IsPointer>();
             foreach (Chunk chunk in world.Chunks)
             {
@@ -194,15 +192,11 @@ namespace UI.Systems
             //todo: handle using arrow keys to switch to an adjacent selectable
         }
 
-        void ISystem.Finish(in SystemContext context, in World world)
-        {
-        }
-
         /// <summary>
         /// Finds all renderers that have a selection mask
         /// which intersects with the given <paramref name="selectionMask"/>.
         /// </summary>
-        private readonly void FindSelectableEntities(World world, LayerMask selectionMask)
+        private void FindSelectableEntities(World world, LayerMask selectionMask)
         {
             selectableEntities.Clear();
 

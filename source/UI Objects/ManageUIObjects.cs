@@ -9,57 +9,37 @@ using Worlds;
 
 namespace UI.Systems
 {
-    public readonly partial struct ManageUIObjects : ISystem
+    public class ManageUIObjects : ISystem, IDisposable
     {
-        private readonly Dictionary<World, Operation> operations;
+        private readonly Operation operation;
         private readonly Dictionary<Entity, uint> sceneObjects;
 
         public ManageUIObjects()
         {
-            operations = new();
+            operation = new();
             sceneObjects = new();
         }
 
-        readonly void IDisposable.Dispose()
+        public void Dispose()
         {
             sceneObjects.Dispose();
-
-            foreach (Operation operation in operations.Values)
-            {
-                operation.Dispose();
-            }
-
-            operations.Dispose();
+            operation.Dispose();
         }
 
-        void ISystem.Start(in SystemContext context, in World world)
+        void ISystem.Update(Simulator simulator, double deltaTime)
         {
-            ref Operation operation = ref operations.TryGetValue(world, out bool contains);
-            if (!contains)
-            {
-                operation = ref operations.Add(world);
-                operation = new();
-            }
-        }
-
-        void ISystem.Update(in SystemContext context, in World world, in TimeSpan delta)
-        {
-            ref Operation operation = ref operations[world];
-            CreateObjects(context, world, operation, sceneObjects, delta);
+            CreateObjects(simulator, operation, sceneObjects, deltaTime);
 
             if (operation.Count > 0)
             {
-                operation.Perform(world);
+                operation.Perform(simulator.world);
                 operation.Reset();
             }
         }
 
-        void ISystem.Finish(in SystemContext context, in World world)
+        private static void CreateObjects(Simulator simulator, Operation operation, Dictionary<Entity, uint> sceneObjects, double deltaTime)
         {
-        }
-
-        private static void CreateObjects(SystemContext context, World world, Operation operation, Dictionary<Entity, uint> sceneObjects, TimeSpan delta)
-        {
+            World world = simulator.world;
             Schema schema = world.Schema;
             int uiObjectRequestComponent = schema.GetComponentType<IsUIObjectRequest>();
             int uiObjectTag = schema.GetTagType<IsUIObject>();
@@ -80,13 +60,13 @@ namespace UI.Systems
 
                         if (request.status == IsUIObjectRequest.Status.Loading)
                         {
-                            if (TryImportUIObject(context, world, request.address, sceneObjects, operation))
+                            if (TryImportUIObject(simulator, request.address, sceneObjects, operation))
                             {
                                 //yay
                             }
                             else
                             {
-                                request.duration += delta;
+                                request.duration += deltaTime;
                                 if (request.duration >= request.timeout)
                                 {
                                     request.status = IsUIObjectRequest.Status.NotFound;
@@ -98,17 +78,15 @@ namespace UI.Systems
             }
         }
 
-        private static bool TryImportUIObject(SystemContext context, World world, ASCIIText256 address, Dictionary<Entity, uint> sceneObjects, Operation operation)
+        private static bool TryImportUIObject(Simulator simulator, ASCIIText256 address, Dictionary<Entity, uint> sceneObjects, Operation operation)
         {
-            LoadData message = new(world, address);
-            if (context.TryHandleMessage(ref message) != default)
+            LoadData message = new(simulator.world, address);
+            simulator.Broadcast(ref message);
+            if (message.TryConsume(out ByteReader data))
             {
-                if (message.TryConsume(out ByteReader data))
-                {
-                    JSONReader jsonReader = new(data);
-                    data.Dispose();
-                    return true;
-                }
+                JSONReader jsonReader = new(data);
+                data.Dispose();
+                return true;
             }
 
             return false;

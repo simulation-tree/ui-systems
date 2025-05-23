@@ -2,13 +2,14 @@
 using Simulation;
 using System;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using Transforms.Components;
 using UI.Components;
 using Worlds;
 
 namespace UI.Systems
 {
-    public partial struct ScrollHandleMovingSystem : ISystem
+    public class ScrollHandleMovingSystem : ISystem, IDisposable
     {
         private readonly List<uint> scrollHandleEntities;
         private readonly List<uint> scrollRegionEntities;
@@ -25,18 +26,15 @@ namespace UI.Systems
             dragOffset = default;
         }
 
-        public readonly void Dispose()
+        public void Dispose()
         {
             scrollRegionEntities.Dispose();
             scrollHandleEntities.Dispose();
         }
 
-        readonly void ISystem.Start(in SystemContext context, in World world)
+        void ISystem.Update(Simulator simulator, double deltaTime)
         {
-        }
-
-        void ISystem.Update(in SystemContext context, in World world, in TimeSpan delta)
-        {
+            World world = simulator.world;
             ComponentQuery<IsScrollBar> scrollBarQuery = new(world);
             foreach (var s in scrollBarQuery)
             {
@@ -134,10 +132,6 @@ namespace UI.Systems
             scrollRegionEntities.Clear();
         }
 
-        readonly void ISystem.Finish(in SystemContext context, in World world)
-        {
-        }
-
         private static Vector2 GetScrollBarValue(World world, uint scrollHandleEntity, Vector2 pointerPosition)
         {
             uint scrollRegionEntity = world.GetParent(scrollHandleEntity);
@@ -185,6 +179,7 @@ namespace UI.Systems
             position.value.Y = value.Y;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static Vector2 Clamp(Vector2 input, Vector2 min, Vector2 max)
         {
             if (input.X < min.X)
