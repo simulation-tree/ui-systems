@@ -2,41 +2,47 @@
 using Simulation;
 using System;
 using UI.Components;
+using UI.Messages;
 using Worlds;
 
 namespace UI.Systems
 {
-    public class ToggleSystem : ISystem, IDisposable
+    public partial class ToggleSystem : SystemBase, IListener<UIUpdate>
     {
+        private readonly World world;
         private readonly List<uint> pressedPointers;
         private readonly List<uint> toggleEntities;
+        private readonly int toggleType;
+        private readonly int pointerType;
 
-        public ToggleSystem()
+        public ToggleSystem(Simulator simulator, World world) : base(simulator)
         {
+            this.world = world;
             pressedPointers = new(4);
             toggleEntities = new(4);
+
+            Schema schema = world.Schema;
+            toggleType = schema.GetComponentType<IsToggle>();
+            pointerType = world.Schema.GetComponentType<IsPointer>();
         }
 
-        public void Dispose()
+        public override void Dispose()
         {
             toggleEntities.Dispose();
             pressedPointers.Dispose();
         }
 
-        void ISystem.Update(Simulator simulator, double deltaTime)
+        void IListener<UIUpdate>.Receive(ref UIUpdate message)
         {
-            World world = simulator.world;
-            FindToggleEntities(world);
-
+            FindToggleEntities();
             Span<uint> toggleEntities = this.toggleEntities.AsSpan();
-            int pointerComponent = world.Schema.GetComponentType<IsPointer>();
             foreach (Chunk chunk in world.Chunks)
             {
                 Definition definition = chunk.Definition;
-                if (definition.ContainsComponent(pointerComponent) && !definition.ContainsTag(Schema.DisabledTagType))
+                if (definition.ContainsComponent(pointerType) && !definition.IsDisabled)
                 {
                     ReadOnlySpan<uint> entities = chunk.Entities;
-                    ComponentEnumerator<IsPointer> components = chunk.GetComponents<IsPointer>(pointerComponent);
+                    ComponentEnumerator<IsPointer> components = chunk.GetComponents<IsPointer>(pointerType);
                     for (int i = 0; i < entities.Length; i++)
                     {
                         ref IsPointer pointer = ref components[i];
@@ -53,7 +59,7 @@ namespace UI.Systems
                                     uint selectedEntity = world.GetReference(entity, hoveringOverReference);
                                     if (toggleEntities.Contains(selectedEntity))
                                     {
-                                        ref IsToggle component = ref world.GetComponent<IsToggle>(selectedEntity);
+                                        ref IsToggle component = ref world.GetComponent<IsToggle>(selectedEntity, toggleType);
                                         component.value = !component.value;
 
                                         rint checkmarkReference = component.checkmarkReference;
@@ -62,7 +68,7 @@ namespace UI.Systems
 
                                         if (component.callback != default)
                                         {
-                                            Toggle toggle = new Entity(world, selectedEntity).As<Toggle>();
+                                            Toggle toggle = Entity.Get<Toggle>(world, selectedEntity);
                                             component.callback.Invoke(toggle, component.value);
                                         }
                                     }
@@ -80,14 +86,13 @@ namespace UI.Systems
             }
         }
 
-        private void FindToggleEntities(World world)
+        private void FindToggleEntities()
         {
             toggleEntities.Clear();
-            int toggleComponent = world.Schema.GetComponentType<IsToggle>();
             foreach (Chunk chunk in world.Chunks)
             {
                 Definition definition = chunk.Definition;
-                if (definition.ContainsComponent(toggleComponent) && !definition.ContainsTag(Schema.DisabledTagType))
+                if (definition.ContainsComponent(toggleType) && !definition.IsDisabled)
                 {
                     ReadOnlySpan<uint> entities = chunk.Entities;
                     toggleEntities.AddRange(entities);

@@ -2,28 +2,36 @@
 using Simulation;
 using System;
 using UI.Components;
+using UI.Messages;
 using Worlds;
 
 namespace UI.Systems
 {
-    public class InvokeTriggersSystem : ISystem, IDisposable
+    //todo: this could also be part of the automations project
+    public partial class InvokeTriggersSystem : SystemBase, IListener<UIUpdate>
     {
-        private readonly Array<Entity> currentEntities;
-        private readonly Dictionary<int, List<Entity>> entitiesPerTrigger;
+        private readonly World world;
+        private readonly Array<uint> currentEntities;
+        private readonly Dictionary<int, List<uint>> entitiesPerTrigger;
         private readonly Dictionary<int, IsTrigger> functions;
+        private readonly int triggerType;
 
-        public InvokeTriggersSystem()
+        public InvokeTriggersSystem(Simulator simulator, World world) : base(simulator)
         {
+            this.world = world;
             currentEntities = new(4);
             entitiesPerTrigger = new(4);
             functions = new(4);
+
+            Schema schema = world.Schema;
+            triggerType = schema.GetComponentType<IsTrigger>();
         }
 
-        public void Dispose()
+        public override void Dispose()
         {
-            foreach (int functionHash in entitiesPerTrigger.Keys)
+            foreach (List<uint> entityList in entitiesPerTrigger.Values)
             {
-                entitiesPerTrigger[functionHash].Dispose();
+                entityList.Dispose();
             }
 
             functions.Dispose();
@@ -31,31 +39,28 @@ namespace UI.Systems
             currentEntities.Dispose();
         }
 
-        void ISystem.Update(Simulator simulator, double deltaTime)
+        void IListener<UIUpdate>.Receive(ref UIUpdate message)
         {
             //find new entities
-            World world = simulator.world;
-            int triggerComponent = world.Schema.GetComponentType<IsTrigger>();
             foreach (Chunk chunk in world.Chunks)
             {
                 Definition definition = chunk.Definition;
-                if (definition.ContainsComponent(triggerComponent) && !definition.ContainsTag(Schema.DisabledTagType))
+                if (definition.ContainsComponent(triggerType) && !definition.IsDisabled)
                 {
                     ReadOnlySpan<uint> entities = chunk.Entities;
-                    ComponentEnumerator<IsTrigger> triggers = chunk.GetComponents<IsTrigger>(triggerComponent);
+                    ComponentEnumerator<IsTrigger> triggers = chunk.GetComponents<IsTrigger>(triggerType);
                     for (int i = 0; i < entities.Length; i++)
                     {
                         ref IsTrigger trigger = ref triggers[i];
                         int triggerHash = trigger.GetHashCode();
-                        if (!entitiesPerTrigger.TryGetValue(triggerHash, out List<Entity> entitiesList))
+                        if (!entitiesPerTrigger.TryGetValue(triggerHash, out List<uint> entitiesList))
                         {
                             entitiesList = new();
                             entitiesPerTrigger.Add(triggerHash, entitiesList);
                             functions.Add(triggerHash, trigger);
                         }
 
-                        Entity entityContainer = new(world, entities[i]);
-                        entitiesList.Add(entityContainer);
+                        entitiesList.Add(entities[i]);
                     }
                 }
             }
@@ -63,31 +68,34 @@ namespace UI.Systems
             foreach (int functionHash in entitiesPerTrigger.Keys)
             {
                 IsTrigger trigger = functions[functionHash];
-                List<Entity> entities = entitiesPerTrigger[functionHash];
+                List<uint> entities = entitiesPerTrigger[functionHash];
+                Span<uint> entitiesSpan = entities.AsSpan();
 
                 //remove entities that no longer exist
-                for (int i = entities.Count - 1; i >= 0; i--)
+                for (int i = entitiesSpan.Length - 1; i >= 0; i--)
                 {
-                    Entity entity = entities[i];
-                    if (entity.IsDestroyed)
+                    uint entity = entitiesSpan[i];
+                    if (!world.ContainsEntity(entity))
                     {
                         entities.RemoveAt(i);
                     }
                 }
 
-                currentEntities.Length = entities.Count;
-                currentEntities.CopyFrom(entities.AsSpan());
-                trigger.filter.Invoke(currentEntities.AsSpan(), trigger.userData);
-                for (int i = 0; i < currentEntities.Length; i++)
+                entitiesSpan = entities.AsSpan();
+                currentEntities.Length = entitiesSpan.Length;
+                currentEntities.CopyFrom(entitiesSpan);
+                entities.Clear();
+
+                Span<uint> currentEntitiesSpan = currentEntities.AsSpan();
+                trigger.filter.Invoke(world, currentEntitiesSpan, trigger.userData);
+                for (int i = 0; i < currentEntitiesSpan.Length; i++)
                 {
-                    Entity entity = currentEntities[i];
+                    uint entity = currentEntitiesSpan[i];
                     if (entity != default && trigger.callback != default)
                     {
-                        trigger.callback.Invoke(entity);
+                        trigger.callback.Invoke(world, entity);
                     }
                 }
-
-                entities.Clear();
             }
         }
     }

@@ -4,11 +4,13 @@ using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using UI.Components;
+using UI.Messages;
 using Worlds;
 
 namespace UI.Systems
 {
-    public class ComponentMixingSystem : ISystem, IDisposable
+    //todo: could this system be part of the automation repo instead?
+    public partial class ComponentMixingSystem : SystemBase, IListener<UIUpdate>
     {
         private static readonly MixFunction[] functions;
 
@@ -29,21 +31,22 @@ namespace UI.Systems
             functions[(byte)ComponentMix.Operation.FloatingDivide] = new(&FloatingDivide);
         }
 
+        private readonly World world;
         private readonly List<Request> requests;
 
-        public ComponentMixingSystem()
+        public ComponentMixingSystem(Simulator simulator, World world) : base(simulator)
         {
+            this.world = world;
             requests = new(4);
         }
 
-        public void Dispose()
+        public override void Dispose()
         {
             requests.Dispose();
         }
 
-        void ISystem.Update(Simulator simulator, double deltaTime)
+        void IListener<UIUpdate>.Receive(ref UIUpdate message)
         {
-            World world = simulator.world;
             ComponentQuery<ComponentMix> query = new(world);
             query.ExcludeDisabled(true);
             foreach (var x in query)
@@ -53,12 +56,13 @@ namespace UI.Systems
                 requests.Add(new(entity, mix));
             }
 
-            MixComponents(world, requests.AsSpan());
+            MixComponents(requests.AsSpan());
             requests.Clear();
         }
 
-        private void MixComponents(World world, ReadOnlySpan<Request> requests)
+        private void MixComponents(ReadOnlySpan<Request> requests)
         {
+            Span<MixFunction> functionsSpan = functions.AsSpan();
             foreach (Request request in requests)
             {
                 uint entity = request.entity;
@@ -87,8 +91,7 @@ namespace UI.Systems
                     Span<byte> leftPart = leftBytes.Slice(i * partSize, partSize);
                     Span<byte> rightPart = rightBytes.Slice(i * partSize, partSize);
                     Span<byte> outputPart = outputBytes.Slice(i * partSize, partSize);
-                    MixFunction function = functions[(byte)mix.operation];
-                    function.Invoke(leftPart, rightPart, outputPart);
+                    functionsSpan[(byte)mix.operation].Invoke(leftPart, rightPart, outputPart);
                 }
             }
         }

@@ -7,6 +7,18 @@ namespace UI.Systems.Tests
 {
     public class TriggerTests : UISystemsTests
     {
+        protected override void SetUp()
+        {
+            base.SetUp();
+            Simulator.Add(new InvokeTriggersSystem(Simulator, world));
+        }
+
+        protected override void TearDown()
+        {
+            Simulator.Remove<InvokeTriggersSystem>();
+            base.TearDown();
+        }
+
         [Test]
         public unsafe void CheckTrigger()
         {
@@ -21,25 +33,28 @@ namespace UI.Systems.Tests
             world.AddComponent(triggerB, (byte)2);
             world.AddComponent(triggerC, 3);
 
-            Simulator.Update(0.1);
+            Update(0.1);
 
             Assert.That(world.ContainsComponent<byte>(triggerA), Is.True);
             Assert.That(world.ContainsComponent<byte>(triggerB), Is.True);
+            Assert.That(world.ContainsComponent<byte>(triggerC), Is.False);
             Assert.That(world.ContainsComponent<int>(triggerC), Is.True);
 
             world.GetComponent<IsTrigger>(triggerA).filter = new(&SelectFirstEntity);
             world.GetComponent<IsTrigger>(triggerB).filter = new(&SelectFirstEntity);
             world.GetComponent<IsTrigger>(triggerC).filter = new(&SelectFirstEntity);
 
-            Simulator.Update(0.1);
+            Update(0.1);
 
             Assert.That(world.ContainsComponent<byte>(triggerA), Is.False);
             Assert.That(world.ContainsComponent<byte>(triggerB), Is.True);
+            Assert.That(world.ContainsComponent<byte>(triggerC), Is.False);
+            Assert.That(world.ContainsComponent<int>(triggerC), Is.True);
 
             [UnmanagedCallersOnly]
             static void FilterEverythingOut(TriggerFilter.Input input)
             {
-                foreach (ref Entity entity in input.Entities)
+                foreach (ref uint entity in input.Entities)
                 {
                     entity = default;
                 }
@@ -48,9 +63,9 @@ namespace UI.Systems.Tests
             [UnmanagedCallersOnly]
             static void SelectFirstEntity(TriggerFilter.Input input)
             {
-                foreach (ref Entity entity in input.Entities)
+                foreach (ref uint entity in input.Entities)
                 {
-                    if (entity.value != 1)
+                    if (entity != 1)
                     {
                         entity = default;
                     }

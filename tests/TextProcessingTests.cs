@@ -18,11 +18,21 @@ namespace UI.Tests
         private const string ReplacementNoun = "Yes we all know its a mushroom";
         private const string ReplacementVerb = "done";
 
+        protected override void SetUp()
+        {
+            base.SetUp();
+            Simulator.Add(new LabelTextSystem(Simulator, world));
+        }
+
+        protected override void TearDown()
+        {
+            Simulator.Remove<LabelTextSystem>();
+            base.TearDown();
+        }
+
         [Test]
         public void SimpleKeywordReplacement()
         {
-            Simulator.Add(new LabelTextSystem());
-
             Settings settings = new(world);
             Destination destination = new(world, new(1920, 1080), "dummy");
             Camera camera = Camera.CreateOrthographic(world, destination, 1f);
@@ -33,17 +43,15 @@ namespace UI.Tests
             LabelProcessor.Create(world, new(&ReplaceNoun));
             LabelProcessor.Create(world, new(&ReplaceVerb));
 
-            Simulator.Update();
+            Update();
 
             Assert.That(label.ProcessedText.ToString(), Is.EqualTo($"The following text: `{ReplacementNoun}` is expected to be {ReplacementVerb}"));
 
             label.SetText("1: {{" + VerbToken + "}} 2: {{" + NounToken + "}}");
 
-            Simulator.Update();
+            Update();
 
             Assert.That(label.ProcessedText.ToString(), Is.EqualTo($"1: {ReplacementVerb} 2: {ReplacementNoun}"));
-
-            Simulator.Remove<LabelTextSystem>();
         }
 
         [UnmanagedCallersOnly]
@@ -77,7 +85,6 @@ namespace UI.Tests
         [Test]
         public void UseTokenEntities()
         {
-            Simulator.Add(new LabelTextSystem());
             Settings settings = new(world);
             Destination destination = new(world, new(1920, 1080), "dummy");
             Camera camera = Camera.CreateOrthographic(world, destination, 1f);
@@ -92,17 +99,15 @@ namespace UI.Tests
             verbEntity.CreateArray(ReplacementVerb.AsSpan());
             verbEntity.AddComponent(new IsToken(VerbToken));
 
-            Simulator.Update();
+            Update();
 
             Assert.That(label.ProcessedText.ToString(), Is.EqualTo($"The following text: `{ReplacementNoun}` is expected to be {ReplacementVerb}"));
 
             label.SetText("1: {{" + VerbToken + ":System.Char[]}} 2: {{" + NounToken + ":System.Char[]}}");
 
-            Simulator.Update();
+            Update();
 
             Assert.That(label.ProcessedText.ToString(), Is.EqualTo($"1: {ReplacementVerb} 2: {ReplacementNoun}"));
-
-            Simulator.Remove<LabelTextSystem>();
         }
     }
 }

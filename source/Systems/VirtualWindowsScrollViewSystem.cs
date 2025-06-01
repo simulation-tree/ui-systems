@@ -3,17 +3,29 @@ using System;
 using System.Numerics;
 using Transforms.Components;
 using UI.Components;
+using UI.Messages;
 using Worlds;
 
 namespace UI.Systems
 {
-    public class VirtualWindowsScrollViewSystem : ISystem
+    public partial class VirtualWindowsScrollViewSystem : SystemBase, IListener<UIUpdate>
     {
-        void ISystem.Update(Simulator simulator, double deltaTime)
-        {
-            World world = simulator.world;
-            int ltwType = world.Schema.GetComponentType<LocalToWorld>();
+        private readonly World world;
+        private readonly int ltwType;
 
+        public VirtualWindowsScrollViewSystem(Simulator simulator, World world) : base(simulator)
+        {
+            this.world = world;
+            Schema schema = world.Schema;
+            ltwType = schema.GetComponentType<LocalToWorld>();
+        }
+
+        public override void Dispose()
+        {
+        }
+
+        void IListener<UIUpdate>.Receive(ref UIUpdate message)
+        {
             ComponentQuery<IsVirtualWindow> query = new(world);
             query.ExcludeDisabled(true);
             foreach (var v in query)
@@ -25,8 +37,8 @@ namespace UI.Systems
                 rint viewReference = component.viewReference;
                 uint scrollBarEntity = world.GetReference(virtualWindowEntity, scrollBarReference);
                 uint viewEntity = world.GetReference(virtualWindowEntity, viewReference);
-                ScrollBar scrollBar = new Entity(world, scrollBarEntity).As<ScrollBar>();
-                View view = new Entity(world, viewEntity).As<View>();
+                ScrollBar scrollBar = Entity.Get<ScrollBar>(world, scrollBarEntity);
+                View view = Entity.Get<View>(world, viewEntity);
                 Entity content = view.Content;
                 float minY = float.MaxValue;
                 float maxY = float.MinValue;

@@ -6,40 +6,41 @@ using System;
 using UI.Components;
 using Unmanaged;
 using Worlds;
+using Worlds.Messages;
 
 namespace UI.Systems
 {
-    public class ManageUIObjects : ISystem, IDisposable
+    public partial class ManageUIObjects : SystemBase, IListener<Update>
     {
+        private readonly World world;
         private readonly Operation operation;
         private readonly Dictionary<Entity, uint> sceneObjects;
 
-        public ManageUIObjects()
+        public ManageUIObjects(Simulator simulator, World world) : base(simulator)
         {
-            operation = new();
+            this.world = world;
+            operation = new(world);
             sceneObjects = new();
         }
 
-        public void Dispose()
+        public override void Dispose()
         {
             sceneObjects.Dispose();
             operation.Dispose();
         }
 
-        void ISystem.Update(Simulator simulator, double deltaTime)
+        void IListener<Update>.Receive(ref Update message)
         {
-            CreateObjects(simulator, operation, sceneObjects, deltaTime);
+            CreateObjects(message.deltaTime);
 
-            if (operation.Count > 0)
+            if (operation.TryPerform())
             {
-                operation.Perform(simulator.world);
                 operation.Reset();
             }
         }
 
-        private static void CreateObjects(Simulator simulator, Operation operation, Dictionary<Entity, uint> sceneObjects, double deltaTime)
+        private void CreateObjects(double deltaTime)
         {
-            World world = simulator.world;
             Schema schema = world.Schema;
             int uiObjectRequestComponent = schema.GetComponentType<IsUIObjectRequest>();
             int uiObjectTag = schema.GetTagType<IsUIObject>();
@@ -60,8 +61,9 @@ namespace UI.Systems
 
                         if (request.status == IsUIObjectRequest.Status.Loading)
                         {
-                            if (TryImportUIObject(simulator, request.address, sceneObjects, operation))
+                            if (TryImportUIObject(request.address))
                             {
+                                request.status = IsUIObjectRequest.Status.Loaded;
                                 //yay
                             }
                             else
@@ -78,9 +80,9 @@ namespace UI.Systems
             }
         }
 
-        private static bool TryImportUIObject(Simulator simulator, ASCIIText256 address, Dictionary<Entity, uint> sceneObjects, Operation operation)
+        private bool TryImportUIObject(ASCIIText256 address)
         {
-            LoadData message = new(simulator.world, address);
+            LoadData message = new(address);
             simulator.Broadcast(ref message);
             if (message.TryConsume(out ByteReader data))
             {

@@ -4,54 +4,61 @@ using System;
 using System.Numerics;
 using Transforms.Components;
 using UI.Components;
+using UI.Messages;
 using Worlds;
 
 namespace UI.Systems
 {
-    public class PointerDraggingSelectableSystem : ISystem, IDisposable
+    public partial class PointerDraggingSelectableSystem : SystemBase, IListener<UIUpdate>
     {
-        private readonly List<Entity> pressedStates;
+        private readonly World world;
+        private readonly List<uint> pressedStates;
         private readonly List<uint> draggableEntities;
+        private readonly int pointerType;
+        private readonly int positionType;
 
-        private Entity dragTarget;
-        private Entity dragPointer;
+        private uint dragTarget;
+        private uint dragPointer;
         private Vector2 lastPosition;
 
-        public PointerDraggingSelectableSystem()
+        public PointerDraggingSelectableSystem(Simulator simulator, World world) : base(simulator)
         {
+            this.world = world;
             pressedStates = new(16);
             draggableEntities = new(16);
             dragTarget = default;
             dragPointer = default;
             lastPosition = default;
+
+            Schema schema = world.Schema;
+            pointerType = schema.GetComponentType<IsPointer>();
+            positionType = schema.GetComponentType<Position>();
         }
 
-        public void Dispose()
+        public override void Dispose()
         {
             draggableEntities.Dispose();
             pressedStates.Dispose();
         }
 
-        void ISystem.Update(Simulator simulator, double deltaTime)
+        void IListener<UIUpdate>.Receive(ref UIUpdate message)
         {
-            World world = simulator.world;
-            FindDraggableEntities(world);
+            FindDraggableEntities();
 
             ComponentQuery<IsPointer> query = new(world);
             query.ExcludeDisabled(true);
             foreach (var r in query)
             {
                 ref IsPointer pointer = ref r.component1;
-                Entity entity = new(world, r.entity);
                 bool pressed = pointer.HasPrimaryIntent;
                 bool wasPressed = false;
                 if (pressed)
                 {
-                    wasPressed = pressedStates.TryAdd(entity);
+                    wasPressed = pressedStates.TryAdd(r.entity);
                 }
                 else
                 {
-                    pressedStates.TryRemoveBySwapping(entity);
+                    pressedStates.TryRemoveBySwapping(r.entity);
                 }
 
                 Vector2 position = pointer.position;
@@ -60,7 +67,7 @@ namespace UI.Systems
                     rint hoveringOverReference = pointer.hoveringOverReference;
                     if (hoveringOverReference != default)
                     {
-                        uint hoveringOverEntity = entity.GetReference(hoveringOverReference);
+                        uint hoveringOverEntity = world.GetReference(r.entity, hoveringOverReference);
                         if (draggableEntities.Contains(hoveringOverEntity))
                         {
                             rint targetReference = world.GetComponent<IsDraggable>(hoveringOverEntity).targetReference;
@@ -72,26 +79,26 @@ namespace UI.Systems
 
                             if (targetEntity != default && world.ContainsEntity(targetEntity))
                             {
-                                dragTarget = new(world, targetEntity);
-                                dragPointer = entity;
+                                dragTarget = targetEntity;
+                                dragPointer = r.entity;
                                 lastPosition = position;
                             }
                         }
                     }
                 }
-                else if (!pressed && entity == dragPointer)
+                else if (!pressed && r.entity == dragPointer)
                 {
                     dragTarget = default;
                 }
             }
 
-            if (dragTarget != default && !dragTarget.IsDestroyed)
+            if (dragTarget != default && world.ContainsEntity(dragTarget)) //todo: checking for default is unecessary im pretty sure
             {
-                Vector2 position = dragPointer.GetComponent<IsPointer>().position;
+                Vector2 position = world.GetComponent<IsPointer>(dragPointer, pointerType).position;
                 Vector2 pointerDelta = position - lastPosition;
                 lastPosition = position;
 
-                ref Position selectablePosition = ref dragTarget.TryGetComponent<Position>(out bool contains);
+                ref Position selectablePosition = ref world.TryGetComponent<Position>(dragTarget, positionType, out bool contains);
                 if (contains)
                 {
                     selectablePosition.value += new Vector3(pointerDelta, 0);
@@ -99,7 +106,7 @@ namespace UI.Systems
             }
         }
 
-        private void FindDraggableEntities(World world)
+        private void FindDraggableEntities()
         {
             draggableEntities.Clear();
 

@@ -6,28 +6,30 @@ using System;
 using System.Numerics;
 using Transforms.Components;
 using UI.Components;
+using UI.Messages;
 using Worlds;
 
 namespace UI.Systems
 {
-    public class ScrollViewSystem : ISystem, IDisposable
+    public partial class ScrollViewSystem : SystemBase, IListener<UIUpdate>
     {
+        private readonly World world;
         private readonly List<uint> scrollBarLinkEntities;
 
-        public ScrollViewSystem()
+        public ScrollViewSystem(Simulator simulator, World world) : base(simulator)
         {
+            this.world = world;
             scrollBarLinkEntities = new(4);
         }
 
-        public void Dispose()
+        public override void Dispose()
         {
             scrollBarLinkEntities.Dispose();
         }
 
-        void ISystem.Update(Simulator simulator, double deltaTime)
+        void IListener<UIUpdate>.Receive(ref UIUpdate message)
         {
-            World world = simulator.world;
-            FindScrollBarLinkEntities(world);
+            FindScrollBarLinkEntities();
 
             ComponentQuery<IsView, LocalToWorld> viewQuery = new(world);
             Span<(uint contentEntity, Vector4 scissor)> missingScissors = stackalloc (uint, Vector4)[256]; //todo: this could fail
@@ -156,7 +158,7 @@ namespace UI.Systems
             }
         }
 
-        private void FindScrollBarLinkEntities(World world)
+        private void FindScrollBarLinkEntities()
         {
             scrollBarLinkEntities.Clear();
             ComponentQuery<ViewScrollBarLink> query = new(world);
@@ -166,7 +168,7 @@ namespace UI.Systems
             }
         }
 
-        private static void UpdateScissors(World world, uint contentEntity, Vector4 region)
+        private void UpdateScissors(uint contentEntity, Vector4 region)
         {
             int childCount = world.GetChildCount(contentEntity);
             if (childCount > 0)
@@ -188,7 +190,7 @@ namespace UI.Systems
                         }
                     }
 
-                    UpdateScissors(world, child, region);
+                    UpdateScissors(child, region);
                 }
             }
         }

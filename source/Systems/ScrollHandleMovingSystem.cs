@@ -5,36 +5,48 @@ using System.Numerics;
 using System.Runtime.CompilerServices;
 using Transforms.Components;
 using UI.Components;
+using UI.Messages;
 using Worlds;
 
 namespace UI.Systems
 {
-    public class ScrollHandleMovingSystem : ISystem, IDisposable
+    public partial class ScrollHandleMovingSystem : SystemBase, IListener<UIUpdate>
     {
+        private readonly World world;
         private readonly List<uint> scrollHandleEntities;
         private readonly List<uint> scrollRegionEntities;
         private uint currentScrollHandleEntity;
         private uint currentPointer;
         private Vector2 dragOffset;
+        private readonly int scrollBarType;
+        private readonly int ltwType;
+        private readonly int pointerType;
+        private readonly int positionType;
 
-        public ScrollHandleMovingSystem()
+        public ScrollHandleMovingSystem(Simulator simulator, World world) : base(simulator)
         {
+            this.world = world;
             scrollHandleEntities = new(16);
             scrollRegionEntities = new(16);
             currentScrollHandleEntity = default;
             currentPointer = default;
             dragOffset = default;
+
+            Schema schema = world.Schema;
+            scrollBarType = schema.GetComponentType<IsScrollBar>();
+            ltwType = schema.GetComponentType<LocalToWorld>();
+            pointerType = schema.GetComponentType<IsPointer>();
+            positionType = schema.GetComponentType<Position>();
         }
 
-        public void Dispose()
+        public override void Dispose()
         {
             scrollRegionEntities.Dispose();
             scrollHandleEntities.Dispose();
         }
 
-        void ISystem.Update(Simulator simulator, double deltaTime)
+        void IListener<UIUpdate>.Receive(ref UIUpdate message)
         {
-            World world = simulator.world;
             ComponentQuery<IsScrollBar> scrollBarQuery = new(world);
             foreach (var s in scrollBarQuery)
             {
@@ -74,11 +86,10 @@ namespace UI.Systems
                     {
                         //teleport scroll value
                         uint scrollBarEntity = world.GetParent(hoveringOverEntity);
-                        rint scrollHandleReference = world.GetComponent<IsScrollBar>(scrollBarEntity).scrollHandleReference;
+                        ref IsScrollBar component = ref world.GetComponent<IsScrollBar>(scrollBarEntity, scrollBarType);
+                        rint scrollHandleReference = component.scrollHandleReference;
                         uint scrollHandleEntity = world.GetReference(scrollBarEntity, scrollHandleReference);
-                        Vector2 value = GetScrollBarValue(world, scrollHandleEntity, pointerPosition);
-                        ref IsScrollBar component = ref world.GetComponent<IsScrollBar>(scrollBarEntity);
-                        component.value = value;
+                        component.value = GetScrollBarValue(scrollHandleEntity, pointerPosition, component.axis);
                     }
                 }
                 else if (!pressed)
@@ -109,13 +120,14 @@ namespace UI.Systems
             //move scrollbar value by dragging
             if (scrollHandleEntities.Contains(currentScrollHandleEntity))
             {
-                IsPointer pointer = world.GetComponent<IsPointer>(currentPointer);
-                Vector2 pointerPosition = pointer.position - dragOffset;
-                Vector2 value = GetScrollBarValue(world, currentScrollHandleEntity, pointerPosition);
-
                 uint scrollRegionEntity = world.GetParent(currentScrollHandleEntity);
                 uint scrollBarEntity = world.GetParent(scrollRegionEntity);
-                ref IsScrollBar component = ref world.GetComponent<IsScrollBar>(scrollBarEntity);
+                ref IsScrollBar component = ref world.GetComponent<IsScrollBar>(scrollBarEntity, scrollBarType);
+
+                IsPointer pointer = world.GetComponent<IsPointer>(currentPointer, pointerType);
+                Vector2 pointerPosition = pointer.position - dragOffset;
+                Vector2 value = GetScrollBarValue(currentScrollHandleEntity, pointerPosition, component.axis);
+
                 component.value = value;
             }
 
@@ -125,23 +137,19 @@ namespace UI.Systems
                 rint scrollHandleReference = s.component1.scrollHandleReference;
                 uint scrollHandleEntity = world.GetReference(s.entity, scrollHandleReference);
                 Vector2 value = s.component1.value;
-                UpdateScrollBarVisual(world, scrollHandleEntity, value);
+                UpdateScrollBarVisual(scrollHandleEntity, value);
             }
 
             scrollHandleEntities.Clear();
             scrollRegionEntities.Clear();
         }
 
-        private static Vector2 GetScrollBarValue(World world, uint scrollHandleEntity, Vector2 pointerPosition)
+        private Vector2 GetScrollBarValue(uint scrollHandleEntity, Vector2 pointerPosition, Vector2 axis)
         {
             uint scrollRegionEntity = world.GetParent(scrollHandleEntity);
-            uint scrollBarEntity = world.GetParent(scrollRegionEntity);
-            IsScrollBar component = world.GetComponent<IsScrollBar>(scrollBarEntity);
-            LocalToWorld scrollHandleLtw = world.GetComponent<LocalToWorld>(scrollHandleEntity);
+            LocalToWorld scrollHandleLtw = world.GetComponent<LocalToWorld>(scrollHandleEntity, ltwType);
             Vector3 scrollHandleSize = scrollHandleLtw.Scale;
-            Vector2 axis = component.axis;
-
-            LocalToWorld scrollRegionLtw = world.GetComponent<LocalToWorld>(scrollRegionEntity);
+            LocalToWorld scrollRegionLtw = world.GetComponent<LocalToWorld>(scrollRegionEntity, ltwType);
             Vector3 scrollRegionSize = scrollRegionLtw.Scale;
             Vector3 scrollRegionPosition = scrollRegionLtw.Position;
             Vector2 scrollRegionMin = new(scrollRegionPosition.X, scrollRegionPosition.Y);
@@ -160,21 +168,20 @@ namespace UI.Systems
             return value;
         }
 
-        private static void UpdateScrollBarVisual(World world, uint scrollHandleEntity, Vector2 value)
+        private void UpdateScrollBarVisual(uint scrollHandleEntity, Vector2 value)
         {
             uint scrollRegionEntity = world.GetParent(scrollHandleEntity);
             uint scrollBarEntity = world.GetParent(scrollRegionEntity);
-            Vector2 axis = world.GetComponent<IsScrollBar>(scrollBarEntity).axis;
-
-            LocalToWorld scrollBarLtw = world.GetComponent<LocalToWorld>(scrollHandleEntity);
-            LocalToWorld scrollRegionLtw = world.GetComponent<LocalToWorld>(scrollRegionEntity);
+            Vector2 axis = world.GetComponent<IsScrollBar>(scrollBarEntity, scrollBarType).axis;
+            LocalToWorld scrollBarLtw = world.GetComponent<LocalToWorld>(scrollHandleEntity, ltwType);
+            LocalToWorld scrollRegionLtw = world.GetComponent<LocalToWorld>(scrollRegionEntity, ltwType);
             Vector3 scrollBarSize = scrollBarLtw.Scale;
             Vector3 scrollRegionSize = scrollRegionLtw.Scale;
 
             value.X *= 1 - ((scrollBarSize.X / scrollRegionSize.X) * axis.X);
             value.Y *= 1 - ((scrollBarSize.Y / scrollRegionSize.Y) * axis.Y);
 
-            ref Position position = ref world.GetComponent<Position>(scrollHandleEntity);
+            ref Position position = ref world.GetComponent<Position>(scrollHandleEntity, positionType);
             position.value.X = value.X;
             position.value.Y = value.Y;
         }

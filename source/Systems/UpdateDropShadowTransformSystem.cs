@@ -1,31 +1,48 @@
 ﻿using Simulation;
 using System;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using Transforms.Components;
 using UI.Components;
+using UI.Messages;
 using Worlds;
 
 namespace UI.Systems
 {
-    public class UpdateDropShadowTransformSystem : ISystem, IDisposable
+    [SkipLocalsInit]
+    public partial class UpdateDropShadowTransformSystem : SystemBase, IListener<UIUpdate>
     {
+        private readonly World world;
         private readonly Operation operation;
+        private readonly int positionComponent;
+        private readonly int scaleComponent;
+        private readonly int dropShadowComponent;
+        private readonly int ltwType;
+        private readonly int menuType;
+        private readonly int menuOptionArrayType;
 
-        public UpdateDropShadowTransformSystem()
+        public UpdateDropShadowTransformSystem(Simulator simulator, World world) : base(simulator)
         {
-            operation = new();
+            this.world = world;
+            operation = new(world);
+
+            Schema schema = world.Schema;
+            positionComponent = schema.GetComponentType<Position>();
+            scaleComponent = schema.GetComponentType<Scale>();
+            dropShadowComponent = schema.GetComponentType<IsDropShadow>();
+            ltwType = schema.GetComponentType<LocalToWorld>();
+            menuType = schema.GetComponentType<IsMenu>();
+            menuOptionArrayType = schema.GetArrayType<IsMenuOption>();
         }
 
-        public void Dispose()
+        public override void Dispose()
         {
             operation.Dispose();
         }
 
-        void ISystem.Update(Simulator simulator, double deltaTime)
+        void IListener<UIUpdate>.Receive(ref UIUpdate message)
         {
             //destroy drop shadows if their foreground doesnt exist anymore
-            World world = simulator.world;
-            int dropShadowComponent = world.Schema.GetComponentType<IsDropShadow>();
             Span<(uint, bool)> setEnabled = stackalloc (uint, bool)[256];
             int setEnabledCount = 0;
             foreach (Chunk chunk in world.Chunks)
@@ -41,7 +58,7 @@ namespace UI.Systems
                         uint foregroundEntity = world.GetReference(entity, component.foregroundReference);
                         if (foregroundEntity == default || !world.ContainsEntity(foregroundEntity))
                         {
-                            operation.SelectEntity(entity);
+                            operation.AppendEntityToSelection(entity);
                         }
                         else
                         {
@@ -52,6 +69,7 @@ namespace UI.Systems
                 }
             }
 
+            //todo: shouldnt this be an operation?
             for (int i = 0; i < setEnabledCount; i++)
             {
                 (uint entity, bool enabled) = setEnabled[i];
@@ -60,22 +78,24 @@ namespace UI.Systems
 
             if (operation.Count > 0)
             {
-                operation.DestroySelected();
+                operation.DestroySelectedEntities();
                 operation.ClearSelection();
             }
 
             //add scale component to drop shadows that dont have it yet
             //todo: should check if the entity has been destroyed since previous instructions
             bool selectedAny = false;
-            int scaleComponent = world.Schema.GetComponentType<Scale>();
             foreach (Chunk chunk in world.Chunks)
             {
-                Definition definition = chunk.Definition;
-                if (definition.ContainsComponent(dropShadowComponent) && !definition.ContainsComponent(scaleComponent))
+                if (chunk.Count > 0)
                 {
-                    ReadOnlySpan<uint> entities = chunk.Entities;
-                    operation.SelectEntities(entities);
-                    selectedAny = true;
+                    Definition definition = chunk.Definition;
+                    if (definition.ContainsComponent(dropShadowComponent) && !definition.ContainsComponent(scaleComponent))
+                    {
+                        ReadOnlySpan<uint> entities = chunk.Entities;
+                        operation.AppendMultipleEntitiesToSelection(entities);
+                        selectedAny = true;
+                    }
                 }
             }
 
@@ -84,20 +104,18 @@ namespace UI.Systems
                 operation.AddComponent(Scale.Default);
             }
 
-
-            if (operation.Count > 0)
+            if (operation.TryPerform())
             {
-                operation.Perform(world);
                 operation.Reset();
             }
 
             //do the thing
             const float ShadowDistance = 30f;
-            int positionComponent = world.Schema.GetComponentType<Position>();
+            BitMask componentTypes = new(dropShadowComponent, scaleComponent, positionComponent);
             foreach (Chunk chunk in world.Chunks)
             {
                 Definition definition = chunk.Definition;
-                if (definition.ContainsComponent(dropShadowComponent) && definition.ContainsComponent(scaleComponent) && definition.ContainsComponent(positionComponent))
+                if (definition.componentTypes.ContainsAll(componentTypes))
                 {
                     ReadOnlySpan<uint> entities = chunk.Entities;
                     ComponentEnumerator<IsDropShadow> dropShadowComponents = chunk.GetComponents<IsDropShadow>(dropShadowComponent);
@@ -113,13 +131,13 @@ namespace UI.Systems
                         //make the dropshadow match the foreground in world space
                         rint foregroundReference = component.foregroundReference;
                         uint foregroundEntity = world.GetReference(entity, foregroundReference);
-                        ref LocalToWorld foregroundLtw = ref world.GetComponent<LocalToWorld>(foregroundEntity);
+                        ref LocalToWorld foregroundLtw = ref world.GetComponent<LocalToWorld>(foregroundEntity, ltwType);
                         Vector3 positionValue = foregroundLtw.Position;
                         Vector3 scaleValue = foregroundLtw.Scale;
-                        if (world.TryGetComponent(foregroundEntity, out IsMenu menuComponent))
+                        if (world.TryGetComponent(foregroundEntity, menuType, out IsMenu menuComponent))
                         {
                             //unique branch for menus
-                            int optionCount = world.GetArrayLength<IsMenuOption>(foregroundEntity);
+                            int optionCount = world.GetArrayLength(foregroundEntity, menuOptionArrayType);
                             float originalHeight = menuComponent.optionSize.Y;
                             scaleValue.X = menuComponent.optionSize.X;
                             scaleValue.Y = originalHeight * optionCount;
@@ -132,7 +150,7 @@ namespace UI.Systems
                         //update the ltw of the mesh to match foreground
                         rint meshReference = component.meshReference;
                         uint meshEntity = world.GetReference(entity, meshReference);
-                        ref LocalToWorld meshLtw = ref world.GetComponent<LocalToWorld>(meshEntity);
+                        ref LocalToWorld meshLtw = ref world.GetComponent<LocalToWorld>(meshEntity, ltwType);
                         meshLtw = new(positionValue, Quaternion.Identity, scaleValue);
                     }
                 }

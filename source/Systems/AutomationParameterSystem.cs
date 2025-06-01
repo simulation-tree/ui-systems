@@ -4,31 +4,34 @@ using Collections.Generic;
 using Simulation;
 using System;
 using UI.Components;
+using UI.Messages;
 using Worlds;
 
 namespace UI.Systems
 {
-    public class AutomationParameterSystem : ISystem, IDisposable
+    public partial class AutomationParameterSystem : SystemBase, IListener<UIUpdate>
     {
-        private readonly List<Entity> selectedEntities;
+        private readonly World world;
+        private readonly List<uint> selectedEntities;
 
-        public AutomationParameterSystem()
+        public AutomationParameterSystem(Simulator simulator, World world) : base(simulator)
         {
+            this.world = world;
             selectedEntities = new(16);
         }
 
-        public void Dispose()
+        public override void Dispose()
         {
             selectedEntities.Dispose();
         }
 
-        void ISystem.Update(Simulator simulator, double deltaTime)
+        void IListener<UIUpdate>.Receive(ref UIUpdate message)
         {
-            FindSelectedEntities(simulator.world);
-            UpdateSelectableParameters(simulator.world);
+            FindSelectedEntities();
+            UpdateSelectableParameters();
         }
 
-        private void FindSelectedEntities(World world)
+        private void FindSelectedEntities()
         {
             selectedEntities.Clear();
 
@@ -42,14 +45,15 @@ namespace UI.Systems
                     uint hoveringOverEntity = world.GetReference(p.entity, pointer.hoveringOverReference);
                     if (world.ContainsEntity(hoveringOverEntity))
                     {
-                        selectedEntities.Add(new(world, hoveringOverEntity));
+                        selectedEntities.Add(hoveringOverEntity);
                     }
                 }
             }
         }
 
-        private void UpdateSelectableParameters(World world)
+        private void UpdateSelectableParameters()
         {
+            Span<uint> selectedEntities = this.selectedEntities.AsSpan();
             ComponentQuery<IsSelectable, IsStateful> selectablesQuery = new(world);
             selectablesQuery.ExcludeDisabled(true);
             foreach (var x in selectablesQuery)
@@ -57,9 +61,8 @@ namespace UI.Systems
                 ref IsSelectable selectable = ref x.component1;
                 bool pressed = (selectable.state & IsSelectable.State.WasPrimaryInteractedWith) != 0;
                 pressed |= (selectable.state & IsSelectable.State.IsPrimaryInteractedWith) != 0;
-                Entity entity = new(world, x.entity);
-                Stateful stateful = entity.As<Stateful>();
-                bool selected = selectedEntities.Contains(entity);
+                Stateful stateful = Entity.Get<Stateful>(world, x.entity);
+                bool selected = selectedEntities.Contains(x.entity);
                 stateful.SetParameter("selected", selected ? 1 : 0);
                 stateful.SetParameter("pressed", pressed ? 1 : 0);
             }

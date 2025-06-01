@@ -11,16 +11,18 @@ using Transforms;
 using Transforms.Components;
 using UI.Components;
 using UI.Functions;
+using UI.Messages;
 using Unmanaged;
 using Worlds;
 
 namespace UI.Systems
 {
     [SkipLocalsInit]
-    public class TextFieldEditingSystem : ISystem, IDisposable
+    public partial class TextFieldEditingSystem : SystemBase, IListener<UIUpdate>
     {
         private static readonly char[] controlCharacters = [' ', '.', ',', '_', '-', '+', '*', '/', '\n'];
 
+        private readonly World world;
         private readonly Dictionary<Entity, TextSelection> lastSelections;
         private PressedCharacters lastPressedCharacters;
         private ASCIIText256 currentCharacters;
@@ -29,10 +31,11 @@ namespace UI.Systems
         private readonly Operation operation;
         private readonly Library clipboard;
 
-        public TextFieldEditingSystem()
+        public TextFieldEditingSystem(Simulator simulator, World world) : base(simulator)
         {
+            this.world = world;
             clipboard = new();
-            operation = new();
+            operation = new(world);
             lastSelections = new();
             lastPressedCharacters = default;
             currentCharacters = default;
@@ -40,16 +43,15 @@ namespace UI.Systems
             lastAnyPointerPressed = false;
         }
 
-        public void Dispose()
+        public override void Dispose()
         {
             lastSelections.Dispose();
             operation.Dispose();
             clipboard.Dispose();
         }
 
-        void ISystem.Update(Simulator simulator, double deltaTime)
+        void IListener<UIUpdate>.Receive(ref UIUpdate message)
         {
-            World world = simulator.world;
             ComponentQuery<IsTextField, LocalToWorld> textLabelQuery = new(world);
             foreach (var r in textLabelQuery)
             {
@@ -243,7 +245,7 @@ namespace UI.Systems
                         if (world.IsEnabled(cursorEntity))
                         {
                             //world.SetEnabled(cursorEntity, false);
-                            operation.SelectEntity(cursorEntity);
+                            operation.AppendEntityToSelection(cursorEntity);
                         }
                     }
                 }
@@ -267,8 +269,8 @@ namespace UI.Systems
 
             if (operation.Count > 0)
             {
-                operation.DisableEntities();
-                operation.Perform(world);
+                operation.DisableSelectedEntities();
+                operation.Perform();
                 operation.Reset();
             }
         }

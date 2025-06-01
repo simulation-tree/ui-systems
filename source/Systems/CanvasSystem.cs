@@ -6,25 +6,42 @@ using System.Numerics;
 using System.Runtime.CompilerServices;
 using Transforms.Components;
 using UI.Components;
+using UI.Messages;
 using Worlds;
 
 namespace UI.Systems
 {
     [SkipLocalsInit]
-    public class CanvasSystem : ISystem
+    public partial class CanvasSystem : SystemBase, IListener<UIUpdate>
     {
-        void ISystem.Update(Simulator simulator, double deltaTime)
+        private readonly World world;
+        private readonly int canvasType;
+        private readonly int positionType;
+        private readonly int scaleType;
+        private readonly BitMask canvasComponents;
+
+        public CanvasSystem(Simulator simulator, World world) : base(simulator)
         {
-            World world = simulator.world;
+            this.world = world;
+            Schema schema = world.Schema;
+            canvasType = schema.GetComponentType<IsCanvas>();
+            positionType = schema.GetComponentType<Position>();
+            scaleType = schema.GetComponentType<Scale>();
+            canvasComponents = new(canvasType, positionType, scaleType);
+        }
+
+        public override void Dispose()
+        {
+        }
+
+        void IListener<UIUpdate>.Receive(ref UIUpdate message)
+        {
             Span<uint> destroyedCanvases = stackalloc uint[64];
             int destroyedCanvasCount = 0;
-            int canvasType = world.Schema.GetComponentType<IsCanvas>();
-            int positionType = world.Schema.GetComponentType<Position>();
-            int scaleType = world.Schema.GetComponentType<Scale>();
             foreach (Chunk chunk in world.Chunks)
             {
                 Definition definition = chunk.Definition;
-                if (definition.ContainsComponent(canvasType) && definition.ContainsComponent(positionType) && definition.ContainsComponent(scaleType) && !definition.ContainsTag(Schema.DisabledTagType))
+                if (definition.componentTypes.ContainsAll(canvasComponents) && !definition.IsDisabled)
                 {
                     ReadOnlySpan<uint> entities = chunk.Entities;
                     ComponentEnumerator<IsCanvas> canvasComponents = chunk.GetComponents<IsCanvas>(canvasType);
@@ -45,6 +62,7 @@ namespace UI.Systems
                             {
                                 //todo: the check for whether the camera entity is itself a camera, shouldnt be necessary
                                 //without it it sometimes fails, other times doesnt with the multiple windows program, not sure why
+                                //todo: this could crash
                                 destroyedCanvases[destroyedCanvasCount++] = canvasEntity;
                                 continue;
                             }

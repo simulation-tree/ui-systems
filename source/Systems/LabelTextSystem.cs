@@ -4,48 +4,54 @@ using Simulation;
 using System;
 using UI.Components;
 using UI.Functions;
+using UI.Messages;
 using Unmanaged;
 using Worlds;
 
 namespace UI.Systems
 {
-    public class LabelTextSystem : ISystem, IDisposable
+    public partial class LabelTextSystem : SystemBase, IListener<UIUpdate>
     {
-        private static readonly long charTypeHash;
-
-        static LabelTextSystem()
-        {
-            charTypeHash = "System.Char".GetLongHashCode();
-        }
-
+        private readonly World world;
         private readonly Text result;
         private readonly List<TryProcessLabel> processors;
         private readonly Dictionary<long, uint> tokenEntities;
+        private readonly int textRendererType;
+        private readonly int processorType;
+        private readonly int labelTag;
+        private readonly int labelCharacterArrayType;
+        private readonly int textCharacterArrayType;
+        private readonly int tokenComponentType;
+        private readonly int requestType;
+        private readonly int charArrayType;
 
-        public LabelTextSystem()
+        public LabelTextSystem(Simulator simulator, World world) : base(simulator)
         {
+            this.world = world;
             result = new();
             processors = new();
             tokenEntities = new();
+
+            Schema schema = world.Schema;
+            textRendererType = schema.GetComponentType<IsTextRenderer>();
+            processorType = schema.GetComponentType<IsLabelProcessor>();
+            labelTag = schema.GetTagType<IsLabel>();
+            labelCharacterArrayType = schema.GetArrayType<LabelCharacter>();
+            textCharacterArrayType = schema.GetArrayType<TextCharacter>();
+            tokenComponentType = schema.GetComponentType<IsToken>();
+            requestType = schema.GetComponentType<IsTextMeshRequest>();
+            schema.TryGetArrayType("System.Char", out charArrayType);
         }
 
-        public void Dispose()
+        public override void Dispose()
         {
             tokenEntities.Dispose();
             processors.Dispose();
             result.Dispose();
         }
 
-        void ISystem.Update(Simulator simulator, double deltaTime)
+        void IListener<UIUpdate>.Receive(ref UIUpdate message)
         {
-            World world = simulator.world;
-            Schema schema = world.Schema;
-            int textRendererType = schema.GetComponentType<IsTextRenderer>();
-            int processorType = schema.GetComponentType<IsLabelProcessor>();
-            int labelTag = schema.GetTagType<IsLabel>();
-            int characterArrayType = schema.GetArrayType<LabelCharacter>();
-            int tokenComponentType = schema.GetComponentType<IsToken>();
-
             ReadOnlySpan<Chunk> chunks = world.Chunks;
             processors.Clear();
             tokenEntities.Clear();
@@ -78,7 +84,7 @@ namespace UI.Systems
             foreach (Chunk chunk in chunks)
             {
                 Definition definition = chunk.Definition;
-                if (definition.ContainsTag(labelTag) && definition.ContainsComponent(textRendererType) && definition.ContainsArray(characterArrayType) && !definition.ContainsTag(Schema.DisabledTagType))
+                if (definition.ContainsTag(labelTag) && definition.ContainsComponent(textRendererType) && definition.ContainsArray(labelCharacterArrayType) && !definition.IsDisabled)
                 {
                     ReadOnlySpan<uint> labelEntities = chunk.Entities;
                     ComponentEnumerator<IsTextRenderer> components = chunk.GetComponents<IsTextRenderer>(textRendererType);
@@ -88,22 +94,19 @@ namespace UI.Systems
                         ref rint textMeshReference = ref textRenderer.textMeshReference;
                         if (textMeshReference != default)
                         {
-                            ProcessLabel(world, processorsSpan, textMeshReference, labelEntities[i]);
+                            ProcessLabel(processorsSpan, textMeshReference, labelEntities[i]);
                         }
                     }
                 }
             }
         }
 
-        private void ReplaceTokens(World world, Text text)
+        private void ReplaceTokens(Text text)
         {
             Span<char> span = text.AsSpan();
             if (span.Contains('{'))
             {
                 Schema schema = world.Schema;
-                schema.TryGetArrayType("System.Char", out int charArrayType);
-                schema.TryGetArrayType("UI.Components.LabelCharacter", out int labelArrayType);
-                schema.TryGetArrayType("Rendering.Components.TextCharacter", out int textArrayType);
                 int position = 0;
                 int start = 0;
                 while (position < span.Length - 1)
@@ -144,7 +147,7 @@ namespace UI.Systems
                                         if (schema.TryGetArrayType(type, out int arrayType))
                                         {
                                             text.Remove(start, length);
-                                            if (arrayType == charArrayType || arrayType == labelArrayType || arrayType == textArrayType)
+                                            if (arrayType == charArrayType || arrayType == labelCharacterArrayType || arrayType == textCharacterArrayType)
                                             {
                                                 text.Insert(start, world.GetArray(entity, arrayType).AsSpan<char>());
                                             }
@@ -206,11 +209,11 @@ namespace UI.Systems
             }
         }
 
-        private void ProcessLabel(World world, Span<TryProcessLabel> processors, rint textMeshReference, uint labelEntity)
+        private void ProcessLabel(Span<TryProcessLabel> processors, rint textMeshReference, uint labelEntity)
         {
-            Span<char> originalText = world.GetArray<LabelCharacter>(labelEntity).AsSpan<char>();
+            Span<char> originalText = world.GetArray<LabelCharacter>(labelEntity, labelCharacterArrayType).AsSpan<char>();
             result.CopyFrom(originalText);
-            ReplaceTokens(world, result);
+            ReplaceTokens(result);
 
             //process the input text
             foreach (TryProcessLabel token in processors)
@@ -219,7 +222,7 @@ namespace UI.Systems
             }
 
             uint textMeshEntity = world.GetReference(labelEntity, textMeshReference);
-            Values<TextCharacter> targetText = world.GetArray<TextCharacter>(textMeshEntity);
+            Values<TextCharacter> targetText = world.GetArray<TextCharacter>(textMeshEntity, textCharacterArrayType);
             bool textIsDifferent;
             if (targetText.Length != result.Length)
             {
@@ -234,7 +237,7 @@ namespace UI.Systems
 
             if (textIsDifferent)
             {
-                ref IsTextMeshRequest request = ref world.GetComponent<IsTextMeshRequest>(textMeshEntity);
+                ref IsTextMeshRequest request = ref world.GetComponent<IsTextMeshRequest>(textMeshEntity, requestType);
                 request.loaded = false;
                 result.CopyTo(targetText.AsSpan<char>());
             }

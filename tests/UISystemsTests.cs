@@ -10,12 +10,15 @@ using TextRendering;
 using Textures;
 using Transforms;
 using Types;
+using UI.Messages;
 using Worlds;
 
 namespace UI.Systems.Tests
 {
     public abstract class UISystemsTests : SimulationTests
     {
+        public World world;
+
         static UISystemsTests()
         {
             MetadataRegistry.Load<RenderingMetadataBank>();
@@ -35,20 +38,7 @@ namespace UI.Systems.Tests
         protected override void SetUp()
         {
             base.SetUp();
-            Simulator.Add(new ComponentMixingSystem());
-            Simulator.Add(new InvokeTriggersSystem());
-        }
-
-        protected override void TearDown()
-        {
-            Simulator.Remove<InvokeTriggersSystem>();
-            Simulator.Remove<ComponentMixingSystem>();
-            base.TearDown();
-        }
-
-        protected override Schema CreateSchema()
-        {
-            Schema schema = base.CreateSchema();
+            Schema schema = new();
             schema.Load<RenderingSchemaBank>();
             schema.Load<MaterialsSchemaBank>();
             schema.Load<UISchemaBank>();
@@ -61,7 +51,18 @@ namespace UI.Systems.Tests
             schema.Load<CamerasSchemaBank>();
             schema.Load<TextRenderingSchemaBank>();
             schema.Load<UISystemsTestsSchemaBank>();
-            return schema;
+            world = new(schema);
+        }
+
+        protected override void TearDown()
+        {
+            world.Dispose();
+            base.TearDown();
+        }
+
+        protected override void Update(double deltaTime)
+        {
+            Simulator.Broadcast(new UIUpdate());
         }
     }
 }

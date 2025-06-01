@@ -5,43 +5,56 @@ using System;
 using System.Numerics;
 using Transforms.Components;
 using UI.Components;
+using UI.Messages;
 using Worlds;
 
 namespace UI.Systems
 {
-    public class SelectionSystem : ISystem, IDisposable
+    public partial class SelectionSystem : SystemBase, IListener<UIUpdate>
     {
-        private readonly Dictionary<Entity, PointerAction> pointerStates;
+        private readonly World world;
+        private readonly Dictionary<uint, PointerAction> pointerStates;
         private readonly List<(uint entity, LocalToWorld ltw)> selectableEntities;
+        private readonly int pointerType;
+        private readonly int selectableType;
+        private readonly int ltwType;
+        private readonly int worldRotationType;
+        private readonly BitMask selectableComponents;
 
-        public SelectionSystem()
+        public SelectionSystem(Simulator simulator, World world) : base(simulator)
         {
+            this.world = world;
             pointerStates = new(4);
             selectableEntities = new(4);
+
+            Schema schema = world.Schema;
+            pointerType = schema.GetComponentType<IsPointer>();
+            selectableType = schema.GetComponentType<IsSelectable>();
+            ltwType = schema.GetComponentType<LocalToWorld>();
+            worldRotationType = schema.GetComponentType<WorldRotation>();
+            selectableComponents = new(selectableType, ltwType);
         }
 
-        public void Dispose()
+        public override void Dispose()
         {
             selectableEntities.Dispose();
             pointerStates.Dispose();
         }
 
-
-        void ISystem.Update(Simulator simulator, double deltaTime)
+        void IListener<UIUpdate>.Receive(ref UIUpdate message)
         {
-            World world = simulator.world;
-            int pointerComponent = world.Schema.GetComponentType<IsPointer>();
+            Span<(uint entity, LocalToWorld ltw)> selectableEntitiesSpan = selectableEntities.AsSpan();
             foreach (Chunk chunk in world.Chunks)
             {
                 Definition definition = chunk.Definition;
-                if (definition.ContainsComponent(pointerComponent) && !definition.ContainsTag(Schema.DisabledTagType))
+                if (definition.ContainsComponent(pointerType) && !definition.IsDisabled)
                 {
                     ReadOnlySpan<uint> entities = chunk.Entities;
-                    ComponentEnumerator<IsPointer> components = chunk.GetComponents<IsPointer>(pointerComponent);
+                    ComponentEnumerator<IsPointer> components = chunk.GetComponents<IsPointer>(pointerType);
                     for (int i = 0; i < entities.Length; i++)
                     {
                         ref IsPointer component = ref components[i];
-                        Entity pointer = new(world, entities[i]);
+                        uint pointer = entities[i];
                         Vector2 pointerPosition = component.position;
                         float lastDepth = float.MinValue;
                         uint newHoveringOver = default;
@@ -74,11 +87,11 @@ namespace UI.Systems
 
                         //find currently hovering over entity
                         FindSelectableEntities(world, component.selectionMask);
-                        foreach ((uint selectableEntity, LocalToWorld ltw) in selectableEntities)
+                        foreach ((uint selectableEntity, LocalToWorld ltw) in selectableEntitiesSpan)
                         {
                             Vector3 position = ltw.Position;
                             Vector3 scale = ltw.Scale;
-                            ref WorldRotation worldRotationComponent = ref world.TryGetComponent<WorldRotation>(selectableEntity, out bool hasWorldRotation);
+                            ref WorldRotation worldRotationComponent = ref world.TryGetComponent<WorldRotation>(selectableEntity, worldRotationType, out bool hasWorldRotation);
                             if (hasWorldRotation)
                             {
                                 scale = Vector3.Transform(scale, worldRotationComponent.value);
@@ -101,7 +114,7 @@ namespace UI.Systems
 
                         //update currently selected entity
                         ref rint hoveringOverReference = ref component.hoveringOverReference;
-                        uint currentHoveringOver = hoveringOverReference == default ? default : pointer.GetReference(hoveringOverReference);
+                        uint currentHoveringOver = hoveringOverReference == default ? default : world.GetReference(pointer, hoveringOverReference);
 
                         //handle state mismatch
                         if (!world.ContainsEntity(currentHoveringOver))
@@ -113,7 +126,7 @@ namespace UI.Systems
                         {
                             if (currentHoveringOver != default && world.ContainsEntity(currentHoveringOver))
                             {
-                                ref IsSelectable oldSelectable = ref world.TryGetComponent<IsSelectable>(currentHoveringOver, out bool contains);
+                                ref IsSelectable oldSelectable = ref world.TryGetComponent<IsSelectable>(currentHoveringOver, selectableType, out bool contains);
                                 if (contains)
                                 {
                                     oldSelectable.state = default;
@@ -122,30 +135,30 @@ namespace UI.Systems
 
                             if (newHoveringOver != default)
                             {
-                                ref IsSelectable newSelectable = ref world.GetComponent<IsSelectable>(newHoveringOver);
+                                ref IsSelectable newSelectable = ref world.GetComponent<IsSelectable>(newHoveringOver, selectableType);
                                 newSelectable.state |= IsSelectable.State.IsSelected;
                             }
 
                             if (newHoveringOver == default)
                             {
-                                pointer.RemoveReference(hoveringOverReference);
+                                world.RemoveReference(pointer, hoveringOverReference);
                                 hoveringOverReference = default;
                             }
                             else
                             {
                                 if (hoveringOverReference == default)
                                 {
-                                    hoveringOverReference = pointer.AddReference(newHoveringOver);
+                                    hoveringOverReference = world.AddReference(pointer, newHoveringOver);
                                 }
                                 else
                                 {
-                                    pointer.SetReference(hoveringOverReference, newHoveringOver);
+                                    world.SetReference(pointer, hoveringOverReference, newHoveringOver);
                                 }
                             }
                         }
                         else if (newHoveringOver != default && world.ContainsEntity(newHoveringOver))
                         {
-                            ref IsSelectable selectable = ref world.GetComponent<IsSelectable>(newHoveringOver);
+                            ref IsSelectable selectable = ref world.GetComponent<IsSelectable>(newHoveringOver, selectableType);
                             if (primaryIntentStarted)
                             {
                                 selectable.state |= IsSelectable.State.WasPrimaryInteractedWith;
@@ -200,16 +213,14 @@ namespace UI.Systems
         {
             selectableEntities.Clear();
 
-            int selectableComponent = world.Schema.GetComponentType<IsSelectable>();
-            int ltwComponent = world.Schema.GetComponentType<LocalToWorld>();
             foreach (Chunk chunk in world.Chunks)
             {
                 Definition definition = chunk.Definition;
-                if (definition.ContainsComponent(selectableComponent) && definition.ContainsComponent(ltwComponent) && !definition.ContainsTag(Schema.DisabledTagType))
+                if (definition.componentTypes.ContainsAll(selectableComponents) && !definition.IsDisabled)
                 {
                     ReadOnlySpan<uint> entities = chunk.Entities;
-                    ComponentEnumerator<IsSelectable> selectableComponents = chunk.GetComponents<IsSelectable>(selectableComponent);
-                    ComponentEnumerator<LocalToWorld> ltwComponents = chunk.GetComponents<LocalToWorld>(ltwComponent);
+                    ComponentEnumerator<IsSelectable> selectableComponents = chunk.GetComponents<IsSelectable>(selectableType);
+                    ComponentEnumerator<LocalToWorld> ltwComponents = chunk.GetComponents<LocalToWorld>(ltwType);
                     for (int i = 0; i < entities.Length; i++)
                     {
                         ref IsSelectable selectable = ref selectableComponents[i];
