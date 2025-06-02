@@ -13,7 +13,7 @@ namespace UI.Systems
     public partial class LabelTextSystem : SystemBase, IListener<UIUpdate>
     {
         private readonly World world;
-        private readonly Text result;
+        private readonly Dictionary<uint, Text> results;
         private readonly List<TryProcessLabel> processors;
         private readonly Dictionary<long, uint> tokenEntities;
         private readonly int textRendererType;
@@ -21,16 +21,16 @@ namespace UI.Systems
         private readonly int labelTag;
         private readonly int labelCharacterArrayType;
         private readonly int textCharacterArrayType;
-        private readonly int tokenComponentType;
+        private readonly int tokenType;
         private readonly int requestType;
         private readonly int charArrayType;
 
         public LabelTextSystem(Simulator simulator, World world) : base(simulator)
         {
             this.world = world;
-            result = new();
-            processors = new();
-            tokenEntities = new();
+            results = new(4);
+            processors = new(4);
+            tokenEntities = new(4);
 
             Schema schema = world.Schema;
             textRendererType = schema.GetComponentType<IsTextRenderer>();
@@ -38,25 +38,31 @@ namespace UI.Systems
             labelTag = schema.GetTagType<IsLabel>();
             labelCharacterArrayType = schema.GetArrayType<LabelCharacter>();
             textCharacterArrayType = schema.GetArrayType<TextCharacter>();
-            tokenComponentType = schema.GetComponentType<IsToken>();
+            tokenType = schema.GetComponentType<IsToken>();
             requestType = schema.GetComponentType<IsTextMeshRequest>();
             schema.TryGetArrayType("System.Char", out charArrayType);
         }
 
         public override void Dispose()
         {
+            foreach (Text result in results.Values)
+            {
+                result.Dispose();
+            }
+
             tokenEntities.Dispose();
             processors.Dispose();
-            result.Dispose();
+            results.Dispose();
         }
 
         void IListener<UIUpdate>.Receive(ref UIUpdate message)
         {
-            ReadOnlySpan<Chunk> chunks = world.Chunks;
             processors.Clear();
             tokenEntities.Clear();
-            foreach (Chunk chunk in chunks)
+            ReadOnlySpan<Chunk> chunks = world.Chunks;
+            for (int c = 0; c < chunks.Length; c++)
             {
+                Chunk chunk = chunks[c];
                 Definition definition = chunk.Definition;
                 if (definition.ContainsComponent(processorType))
                 {
@@ -68,9 +74,9 @@ namespace UI.Systems
                     }
                 }
 
-                if (definition.ContainsComponent(tokenComponentType))
+                if (definition.ContainsComponent(tokenType))
                 {
-                    ComponentEnumerator<IsToken> components = chunk.GetComponents<IsToken>(tokenComponentType);
+                    ComponentEnumerator<IsToken> components = chunk.GetComponents<IsToken>(tokenType);
                     ReadOnlySpan<uint> entities = chunk.Entities;
                     for (int i = 0; i < entities.Length; i++)
                     {
@@ -81,8 +87,9 @@ namespace UI.Systems
             }
 
             Span<TryProcessLabel> processorsSpan = processors.AsSpan();
-            foreach (Chunk chunk in chunks)
+            for (int c = 0; c < chunks.Length; c++)
             {
+                Chunk chunk = chunks[c];
                 Definition definition = chunk.Definition;
                 if (definition.ContainsTag(labelTag) && definition.ContainsComponent(textRendererType) && definition.ContainsArray(labelCharacterArrayType) && !definition.IsDisabled)
                 {
@@ -212,6 +219,13 @@ namespace UI.Systems
         private void ProcessLabel(Span<TryProcessLabel> processors, rint textMeshReference, uint labelEntity)
         {
             Span<char> originalText = world.GetArray<LabelCharacter>(labelEntity, labelCharacterArrayType).AsSpan<char>();
+            ref Text result = ref results.TryGetValue(labelEntity, out bool contains);
+            if (!contains)
+            {
+                result = ref results.Add(labelEntity);
+                result = new(0);
+            }
+
             result.CopyFrom(originalText);
             ReplaceTokens(result);
 
