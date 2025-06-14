@@ -36,7 +36,7 @@ namespace UI.Systems
 
         void IListener<UIUpdate>.Receive(ref UIUpdate message)
         {
-            Span<uint> destroyedCanvases = stackalloc uint[64];
+            Span<uint> destroyedCanvases = stackalloc uint[world.CountChunks(canvasComponents)];
             int destroyedCanvasCount = 0;
             foreach (Chunk chunk in world.Chunks)
             {
@@ -57,12 +57,11 @@ namespace UI.Systems
                         Vector2 size = default;
                         if (cameraEntity != default && world.ContainsEntity(cameraEntity))
                         {
-                            Camera camera = new Entity(world, cameraEntity).As<Camera>();
+                            Camera camera = Entity.Get<Camera>(world, cameraEntity);
                             if (camera.IsDestroyed || !camera.IsCompliant)
                             {
                                 //todo: the check for whether the camera entity is itself a camera, shouldnt be necessary
                                 //without it it sometimes fails, other times doesnt with the multiple windows program, not sure why
-                                //todo: this could crash
                                 destroyedCanvases[destroyedCanvasCount++] = canvasEntity;
                                 continue;
                             }
