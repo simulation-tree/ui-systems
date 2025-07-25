@@ -17,15 +17,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\serialization\source\Serialization.csproj"/>
-    <ProjectReference Include="..\..\simulation\core\Simulation.Core.csproj"/>
+    <ProjectReference Include="..\..\simulation\core\Simulation.Core.csproj" />
     <ProjectReference Include="..\..\simulation\generator\Simulation.Generator.csproj">
       <OutputItemType>Analyzer</OutputItemType>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
-    <ProjectReference Include="..\..\transforms\source\Transforms.csproj"/>
-    <ProjectReference Include="..\..\clipboard\source\Clipboard.csproj"/>
-    <ProjectReference Include="..\..\ui\source\UI.csproj"/>
+    <ProjectReference Include="..\..\transforms\source\Transforms.csproj" />
+    <ProjectReference Include="..\..\clipboard\source\Clipboard.csproj" />
+    <ProjectReference Include="..\..\ui\source\UI.csproj" />
     <ProjectReference Include="..\..\worlds\generator\Worlds.Generator.csproj">
       <OutputItemType>Analyzer</OutputItemType>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
@@ -33,8 +32,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="bin/**/*" Pack="true" PackagePath="lib" Visible="false"/>
-    <Content Include="buildTransitive/**/*" Pack="true" PackagePath="buildTransitive"/>
+    <Content Include="bin/**/*" Pack="true" PackagePath="lib" Visible="false" />
+    <Content Include="buildTransitive/**/*" Pack="true" PackagePath="buildTransitive" />
   </ItemGroup>
 
 </Project>
