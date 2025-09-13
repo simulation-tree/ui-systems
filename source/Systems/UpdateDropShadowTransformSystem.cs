@@ -45,9 +45,11 @@ namespace UI.Systems
             //destroy drop shadows if their foreground doesnt exist anymore
             Span<(uint, bool)> setEnabled = stackalloc (uint, bool)[256];
             int setEnabledCount = 0;
-            foreach (Chunk chunk in world.Chunks)
+            ReadOnlySpan<Chunk> chunks = world.Chunks;
+            for (int c = 0; c < chunks.Length; c++)
             {
-                if (chunk.Definition.ContainsComponent(dropShadowComponent))
+                Chunk chunk = chunks[c];
+                if (chunk.componentTypes.Contains(dropShadowComponent))
                 {
                     ReadOnlySpan<uint> entities = chunk.Entities;
                     ComponentEnumerator<IsDropShadow> components = chunk.GetComponents<IsDropShadow>(dropShadowComponent);
@@ -85,12 +87,13 @@ namespace UI.Systems
             //add scale component to drop shadows that dont have it yet
             //todo: should check if the entity has been destroyed since previous instructions
             bool selectedAny = false;
-            foreach (Chunk chunk in world.Chunks)
+            chunks = world.Chunks;
+            for (int c = 0; c < chunks.Length; c++)
             {
+                Chunk chunk = chunks[c];
                 if (chunk.Count > 0)
                 {
-                    Definition definition = chunk.Definition;
-                    if (definition.ContainsComponent(dropShadowComponent) && !definition.ContainsComponent(scaleComponent))
+                    if (chunk.componentTypes.Contains(dropShadowComponent) && !chunk.componentTypes.Contains(scaleComponent))
                     {
                         ReadOnlySpan<uint> entities = chunk.Entities;
                         operation.AppendMultipleEntitiesToSelection(entities);
@@ -112,10 +115,11 @@ namespace UI.Systems
             //do the thing
             const float ShadowDistance = 30f;
             BitMask componentTypes = new(dropShadowComponent, scaleComponent, positionComponent);
-            foreach (Chunk chunk in world.Chunks)
+            chunks = world.Chunks;
+            for (int c = 0; c < chunks.Length; c++)
             {
-                Definition definition = chunk.Definition;
-                if (definition.componentTypes.ContainsAll(componentTypes))
+                Chunk chunk = chunks[c];
+                if (chunk.componentTypes.ContainsAll(componentTypes))
                 {
                     ReadOnlySpan<uint> entities = chunk.Entities;
                     ComponentEnumerator<IsDropShadow> dropShadowComponents = chunk.GetComponents<IsDropShadow>(dropShadowComponent);

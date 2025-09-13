@@ -42,10 +42,11 @@ namespace UI.Systems
         void IListener<UIUpdate>.Receive(ref UIUpdate message)
         {
             //find new entities
-            foreach (Chunk chunk in world.Chunks)
+            ReadOnlySpan<Chunk> chunks = world.Chunks;
+            for (int c = 0; c < chunks.Length; c++)
             {
-                Definition definition = chunk.Definition;
-                if (definition.ContainsComponent(triggerType) && !definition.IsDisabled)
+                Chunk chunk = chunks[c];
+                if (chunk.componentTypes.Contains(triggerType) && !chunk.IsDisabled)
                 {
                     ReadOnlySpan<uint> entities = chunk.Entities;
                     ComponentEnumerator<IsTrigger> triggers = chunk.GetComponents<IsTrigger>(triggerType);

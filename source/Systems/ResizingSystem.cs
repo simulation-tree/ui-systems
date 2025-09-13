@@ -46,10 +46,11 @@ namespace UI.Systems
             Span<uint> pointerEntities = stackalloc uint[PointerCapacity];
             Span<IsPointer> pointerComponents = stackalloc IsPointer[PointerCapacity];
             int pointerEntityCount = 0;
-            foreach (Chunk chunk in world.Chunks)
+            ReadOnlySpan<Chunk> chunks = world.Chunks;
+            for (int c = 0; c < chunks.Length; c++)
             {
-                Definition definition = chunk.Definition;
-                if (definition.ContainsComponent(pointerType) && !definition.IsDisabled)
+                Chunk chunk = chunks[c];
+                if (chunk.componentTypes.Contains(pointerType) && !chunk.IsDisabled)
                 {
                     ReadOnlySpan<uint> entities = chunk.Entities;
                     ComponentEnumerator<IsPointer> components = chunk.GetComponents<IsPointer>(pointerType);

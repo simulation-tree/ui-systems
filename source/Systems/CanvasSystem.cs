@@ -38,10 +38,11 @@ namespace UI.Systems
         {
             Span<uint> destroyedCanvases = stackalloc uint[world.CountChunks(canvasComponents)];
             int destroyedCanvasCount = 0;
-            foreach (Chunk chunk in world.Chunks)
+            ReadOnlySpan<Chunk> chunks = world.Chunks;
+            for (int c = 0; c < chunks.Length; c++)
             {
-                Definition definition = chunk.Definition;
-                if (definition.componentTypes.ContainsAll(canvasComponents) && !definition.IsDisabled)
+                Chunk chunk = chunks[c];
+                if (chunk.componentTypes.ContainsAll(canvasComponents) && !chunk.IsDisabled)
                 {
                     ReadOnlySpan<uint> entities = chunk.Entities;
                     ComponentEnumerator<IsCanvas> canvasComponents = chunk.GetComponents<IsCanvas>(canvasType);

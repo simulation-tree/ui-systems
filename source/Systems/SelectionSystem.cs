@@ -44,10 +44,11 @@ namespace UI.Systems
         void IListener<UIUpdate>.Receive(ref UIUpdate message)
         {
             Span<(uint entity, LocalToWorld ltw)> selectableEntitiesSpan = selectableEntities.AsSpan();
-            foreach (Chunk chunk in world.Chunks)
+            ReadOnlySpan<Chunk> chunks = world.Chunks;
+            for (int c = 0; c < chunks.Length; c++)
             {
-                Definition definition = chunk.Definition;
-                if (definition.ContainsComponent(pointerType) && !definition.IsDisabled)
+                Chunk chunk = chunks[c];
+                if (chunk.componentTypes.Contains(pointerType) && !chunk.IsDisabled)
                 {
                     ReadOnlySpan<uint> entities = chunk.Entities;
                     ComponentEnumerator<IsPointer> components = chunk.GetComponents<IsPointer>(pointerType);
@@ -213,10 +214,11 @@ namespace UI.Systems
         {
             selectableEntities.Clear();
 
-            foreach (Chunk chunk in world.Chunks)
+            ReadOnlySpan<Chunk> chunks = world.Chunks;
+            for (int c = 0; c < chunks.Length; c++)
             {
-                Definition definition = chunk.Definition;
-                if (definition.componentTypes.ContainsAll(selectableComponents) && !definition.IsDisabled)
+                Chunk chunk = chunks[c];
+                if (chunk.componentTypes.ContainsAll(selectableComponents) && !chunk.IsDisabled)
                 {
                     ReadOnlySpan<uint> entities = chunk.Entities;
                     ComponentEnumerator<IsSelectable> selectableComponents = chunk.GetComponents<IsSelectable>(selectableType);
