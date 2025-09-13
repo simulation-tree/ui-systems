@@ -100,352 +100,316 @@ namespace UI.Systems
         [UnmanagedCallersOnly]
         private static void UnsignedAdd(MixFunction.Input input)
         {
-            unchecked
+            byte length = input.size;
+            if (length == 1)
             {
-                byte length = input.size;
-                if (length == 1)
-                {
-                    ref byte leftPart = ref input.GetLeft<byte>();
-                    ref byte rightPart = ref input.GetRight<byte>();
-                    ref byte outputPart = ref input.GetOutput<byte>();
-                    outputPart = (byte)(leftPart + rightPart);
-                }
-                else if (length == 2)
-                {
-                    ref ushort leftPart = ref input.GetLeft<ushort>();
-                    ref ushort rightPart = ref input.GetRight<ushort>();
-                    ref ushort outputPart = ref input.GetOutput<ushort>();
-                    outputPart = (ushort)(leftPart + rightPart);
-                }
-                else if (length == 4)
-                {
-                    ref uint leftPart = ref input.GetLeft<uint>();
-                    ref uint rightPart = ref input.GetRight<uint>();
-                    ref uint outputPart = ref input.GetOutput<uint>();
-                    outputPart = leftPart + rightPart;
-                }
-                else
-                {
-                    throw new Exception($"Part size `{length}` is not supported");
-                }
+                ref byte leftPart = ref input.GetLeft<byte>();
+                ref byte rightPart = ref input.GetRight<byte>();
+                ref byte outputPart = ref input.GetOutput<byte>();
+                outputPart = (byte)(leftPart + rightPart);
+            }
+            else if (length == 2)
+            {
+                ref ushort leftPart = ref input.GetLeft<ushort>();
+                ref ushort rightPart = ref input.GetRight<ushort>();
+                ref ushort outputPart = ref input.GetOutput<ushort>();
+                outputPart = (ushort)(leftPart + rightPart);
+            }
+            else if (length == 4)
+            {
+                ref uint leftPart = ref input.GetLeft<uint>();
+                ref uint rightPart = ref input.GetRight<uint>();
+                ref uint outputPart = ref input.GetOutput<uint>();
+                outputPart = leftPart + rightPart;
+            }
+            else
+            {
+                throw new Exception($"Part size `{length}` is not supported");
             }
         }
 
         [UnmanagedCallersOnly]
         private static void SignedAdd(MixFunction.Input input)
         {
-            unchecked
+            byte length = input.size;
+            if (length == 1)
             {
-                byte length = input.size;
-                if (length == 1)
-                {
-                    ref sbyte leftPart = ref input.GetLeft<sbyte>();
-                    ref sbyte rightPart = ref input.GetRight<sbyte>();
-                    ref sbyte outputPart = ref input.GetOutput<sbyte>();
-                    outputPart = (sbyte)(leftPart + rightPart);
-                }
-                else if (length == 2)
-                {
-                    ref short leftPart = ref input.GetLeft<short>();
-                    ref short rightPart = ref input.GetRight<short>();
-                    ref short outputPart = ref input.GetOutput<short>();
-                    outputPart = (short)(leftPart + rightPart);
-                }
-                else if (length == 4)
-                {
-                    ref int leftPart = ref input.GetLeft<int>();
-                    ref int rightPart = ref input.GetRight<int>();
-                    ref int outputPart = ref input.GetOutput<int>();
-                    outputPart = leftPart + rightPart;
-                }
-                else
-                {
-                    throw new Exception($"Part size `{length}` is not supported");
-                }
+                ref sbyte leftPart = ref input.GetLeft<sbyte>();
+                ref sbyte rightPart = ref input.GetRight<sbyte>();
+                ref sbyte outputPart = ref input.GetOutput<sbyte>();
+                outputPart = (sbyte)(leftPart + rightPart);
+            }
+            else if (length == 2)
+            {
+                ref short leftPart = ref input.GetLeft<short>();
+                ref short rightPart = ref input.GetRight<short>();
+                ref short outputPart = ref input.GetOutput<short>();
+                outputPart = (short)(leftPart + rightPart);
+            }
+            else if (length == 4)
+            {
+                ref int leftPart = ref input.GetLeft<int>();
+                ref int rightPart = ref input.GetRight<int>();
+                ref int outputPart = ref input.GetOutput<int>();
+                outputPart = leftPart + rightPart;
+            }
+            else
+            {
+                throw new Exception($"Part size `{length}` is not supported");
             }
         }
 
         [UnmanagedCallersOnly]
         private static void UnsignedSubtract(MixFunction.Input input)
         {
-            unchecked
+            byte length = input.size;
+            if (length == 1)
             {
-                byte length = input.size;
-                if (length == 1)
-                {
-                    ref byte leftPart = ref input.GetLeft<byte>();
-                    ref byte rightPart = ref input.GetRight<byte>();
-                    ref byte outputPart = ref input.GetOutput<byte>();
-                    outputPart = (byte)(leftPart - rightPart);
-                }
-                else if (length == 2)
-                {
-                    ref ushort leftPart = ref input.GetLeft<ushort>();
-                    ref ushort rightPart = ref input.GetRight<ushort>();
-                    ref ushort outputPart = ref input.GetOutput<ushort>();
-                    outputPart = (ushort)(leftPart - rightPart);
-                }
-                else if (length == 4)
-                {
-                    ref uint leftPart = ref input.GetLeft<uint>();
-                    ref uint rightPart = ref input.GetRight<uint>();
-                    ref uint outputPart = ref input.GetOutput<uint>();
-                    outputPart = leftPart - rightPart;
-                }
-                else
-                {
-                    throw new Exception($"Part size `{length}` is not supported");
-                }
+                ref byte leftPart = ref input.GetLeft<byte>();
+                ref byte rightPart = ref input.GetRight<byte>();
+                ref byte outputPart = ref input.GetOutput<byte>();
+                outputPart = (byte)(leftPart - rightPart);
+            }
+            else if (length == 2)
+            {
+                ref ushort leftPart = ref input.GetLeft<ushort>();
+                ref ushort rightPart = ref input.GetRight<ushort>();
+                ref ushort outputPart = ref input.GetOutput<ushort>();
+                outputPart = (ushort)(leftPart - rightPart);
+            }
+            else if (length == 4)
+            {
+                ref uint leftPart = ref input.GetLeft<uint>();
+                ref uint rightPart = ref input.GetRight<uint>();
+                ref uint outputPart = ref input.GetOutput<uint>();
+                outputPart = leftPart - rightPart;
+            }
+            else
+            {
+                throw new Exception($"Part size `{length}` is not supported");
             }
         }
 
         [UnmanagedCallersOnly]
         private static void SignedSubtract(MixFunction.Input input)
         {
-            unchecked
+            byte length = input.size;
+            if (length == 1)
             {
-                byte length = input.size;
-                if (length == 1)
-                {
-                    ref sbyte leftPart = ref input.GetLeft<sbyte>();
-                    ref sbyte rightPart = ref input.GetRight<sbyte>();
-                    ref sbyte outputPart = ref input.GetOutput<sbyte>();
-                    outputPart = (sbyte)(leftPart - rightPart);
-                }
-                else if (length == 2)
-                {
-                    ref short leftPart = ref input.GetLeft<short>();
-                    ref short rightPart = ref input.GetRight<short>();
-                    ref short outputPart = ref input.GetOutput<short>();
-                    outputPart = (short)(leftPart - rightPart);
-                }
-                else if (length == 4)
-                {
-                    ref int leftPart = ref input.GetLeft<int>();
-                    ref int rightPart = ref input.GetRight<int>();
-                    ref int outputPart = ref input.GetOutput<int>();
-                    outputPart = leftPart - rightPart;
-                }
-                else
-                {
-                    throw new Exception($"Part size `{length}` is not supported");
-                }
+                ref sbyte leftPart = ref input.GetLeft<sbyte>();
+                ref sbyte rightPart = ref input.GetRight<sbyte>();
+                ref sbyte outputPart = ref input.GetOutput<sbyte>();
+                outputPart = (sbyte)(leftPart - rightPart);
+            }
+            else if (length == 2)
+            {
+                ref short leftPart = ref input.GetLeft<short>();
+                ref short rightPart = ref input.GetRight<short>();
+                ref short outputPart = ref input.GetOutput<short>();
+                outputPart = (short)(leftPart - rightPart);
+            }
+            else if (length == 4)
+            {
+                ref int leftPart = ref input.GetLeft<int>();
+                ref int rightPart = ref input.GetRight<int>();
+                ref int outputPart = ref input.GetOutput<int>();
+                outputPart = leftPart - rightPart;
+            }
+            else
+            {
+                throw new Exception($"Part size `{length}` is not supported");
             }
         }
 
         [UnmanagedCallersOnly]
         private static void UnsignedMultiply(MixFunction.Input input)
         {
-            unchecked
+            byte length = input.size;
+            if (length == 1)
             {
-                byte length = input.size;
-                if (length == 1)
-                {
-                    ref byte leftPart = ref input.GetLeft<byte>();
-                    ref byte rightPart = ref input.GetRight<byte>();
-                    ref byte outputPart = ref input.GetOutput<byte>();
-                    outputPart = (byte)(leftPart * rightPart);
-                }
-                else if (length == 2)
-                {
-                    ref ushort leftPart = ref input.GetLeft<ushort>();
-                    ref ushort rightPart = ref input.GetRight<ushort>();
-                    ref ushort outputPart = ref input.GetOutput<ushort>();
-                    outputPart = (ushort)(leftPart * rightPart);
-                }
-                else if (length == 4)
-                {
-                    ref uint leftPart = ref input.GetLeft<uint>();
-                    ref uint rightPart = ref input.GetRight<uint>();
-                    ref uint outputPart = ref input.GetOutput<uint>();
-                    outputPart = leftPart * rightPart;
-                }
-                else
-                {
-                    throw new Exception($"Part size `{length}` is not supported");
-                }
+                ref byte leftPart = ref input.GetLeft<byte>();
+                ref byte rightPart = ref input.GetRight<byte>();
+                ref byte outputPart = ref input.GetOutput<byte>();
+                outputPart = (byte)(leftPart * rightPart);
+            }
+            else if (length == 2)
+            {
+                ref ushort leftPart = ref input.GetLeft<ushort>();
+                ref ushort rightPart = ref input.GetRight<ushort>();
+                ref ushort outputPart = ref input.GetOutput<ushort>();
+                outputPart = (ushort)(leftPart * rightPart);
+            }
+            else if (length == 4)
+            {
+                ref uint leftPart = ref input.GetLeft<uint>();
+                ref uint rightPart = ref input.GetRight<uint>();
+                ref uint outputPart = ref input.GetOutput<uint>();
+                outputPart = leftPart * rightPart;
+            }
+            else
+            {
+                throw new Exception($"Part size `{length}` is not supported");
             }
         }
 
         [UnmanagedCallersOnly]
         private static void SignedMultiply(MixFunction.Input input)
         {
-            unchecked
+            byte length = input.size;
+            if (length == 1)
             {
-                byte length = input.size;
-                if (length == 1)
-                {
-                    ref sbyte leftPart = ref input.GetLeft<sbyte>();
-                    ref sbyte rightPart = ref input.GetRight<sbyte>();
-                    ref sbyte outputPart = ref input.GetOutput<sbyte>();
-                    outputPart = (sbyte)(leftPart * rightPart);
-                }
-                else if (length == 2)
-                {
-                    ref short leftPart = ref input.GetLeft<short>();
-                    ref short rightPart = ref input.GetRight<short>();
-                    ref short outputPart = ref input.GetOutput<short>();
-                    outputPart = (short)(leftPart * rightPart);
-                }
-                else if (length == 4)
-                {
-                    ref int leftPart = ref input.GetLeft<int>();
-                    ref int rightPart = ref input.GetRight<int>();
-                    ref int outputPart = ref input.GetOutput<int>();
-                    outputPart = leftPart * rightPart;
-                }
-                else
-                {
-                    throw new Exception($"Part size `{length}` is not supported");
-                }
+                ref sbyte leftPart = ref input.GetLeft<sbyte>();
+                ref sbyte rightPart = ref input.GetRight<sbyte>();
+                ref sbyte outputPart = ref input.GetOutput<sbyte>();
+                outputPart = (sbyte)(leftPart * rightPart);
+            }
+            else if (length == 2)
+            {
+                ref short leftPart = ref input.GetLeft<short>();
+                ref short rightPart = ref input.GetRight<short>();
+                ref short outputPart = ref input.GetOutput<short>();
+                outputPart = (short)(leftPart * rightPart);
+            }
+            else if (length == 4)
+            {
+                ref int leftPart = ref input.GetLeft<int>();
+                ref int rightPart = ref input.GetRight<int>();
+                ref int outputPart = ref input.GetOutput<int>();
+                outputPart = leftPart * rightPart;
+            }
+            else
+            {
+                throw new Exception($"Part size `{length}` is not supported");
             }
         }
 
         [UnmanagedCallersOnly]
         private static void UnsignedDivide(MixFunction.Input input)
         {
-            unchecked
+            byte length = input.size;
+            if (length == 1)
             {
-                byte length = input.size;
-                if (length == 1)
-                {
-                    ref byte leftPart = ref input.GetLeft<byte>();
-                    ref byte rightPart = ref input.GetRight<byte>();
-                    ref byte outputPart = ref input.GetOutput<byte>();
-                    outputPart = (byte)(leftPart / rightPart);
-                }
-                else if (length == 2)
-                {
-                    ref ushort leftPart = ref input.GetLeft<ushort>();
-                    ref ushort rightPart = ref input.GetRight<ushort>();
-                    ref ushort outputPart = ref input.GetOutput<ushort>();
-                    outputPart = (ushort)(leftPart / rightPart);
-                }
-                else if (length == 4)
-                {
-                    ref uint leftPart = ref input.GetLeft<uint>();
-                    ref uint rightPart = ref input.GetRight<uint>();
-                    ref uint outputPart = ref input.GetOutput<uint>();
-                    outputPart = leftPart / rightPart;
-                }
-                else
-                {
-                    throw new Exception($"Part size `{length}` is not supported");
-                }
+                ref byte leftPart = ref input.GetLeft<byte>();
+                ref byte rightPart = ref input.GetRight<byte>();
+                ref byte outputPart = ref input.GetOutput<byte>();
+                outputPart = (byte)(leftPart / rightPart);
+            }
+            else if (length == 2)
+            {
+                ref ushort leftPart = ref input.GetLeft<ushort>();
+                ref ushort rightPart = ref input.GetRight<ushort>();
+                ref ushort outputPart = ref input.GetOutput<ushort>();
+                outputPart = (ushort)(leftPart / rightPart);
+            }
+            else if (length == 4)
+            {
+                ref uint leftPart = ref input.GetLeft<uint>();
+                ref uint rightPart = ref input.GetRight<uint>();
+                ref uint outputPart = ref input.GetOutput<uint>();
+                outputPart = leftPart / rightPart;
+            }
+            else
+            {
+                throw new Exception($"Part size `{length}` is not supported");
             }
         }
 
         [UnmanagedCallersOnly]
         private static void SignedDivide(MixFunction.Input input)
         {
-            unchecked
+            byte length = input.size;
+            if (length == 1)
             {
-                byte length = input.size;
-                if (length == 1)
-                {
-                    ref sbyte leftPart = ref input.GetLeft<sbyte>();
-                    ref sbyte rightPart = ref input.GetRight<sbyte>();
-                    ref sbyte outputPart = ref input.GetOutput<sbyte>();
-                    outputPart = (sbyte)(leftPart / rightPart);
-                }
-                else if (length == 2)
-                {
-                    ref short leftPart = ref input.GetLeft<short>();
-                    ref short rightPart = ref input.GetRight<short>();
-                    ref short outputPart = ref input.GetOutput<short>();
-                    outputPart = (short)(leftPart / rightPart);
-                }
-                else if (length == 4)
-                {
-                    ref int leftPart = ref input.GetLeft<int>();
-                    ref int rightPart = ref input.GetRight<int>();
-                    ref int outputPart = ref input.GetOutput<int>();
-                    outputPart = leftPart / rightPart;
-                }
-                else
-                {
-                    throw new Exception($"Part size `{length}` is not supported");
-                }
+                ref sbyte leftPart = ref input.GetLeft<sbyte>();
+                ref sbyte rightPart = ref input.GetRight<sbyte>();
+                ref sbyte outputPart = ref input.GetOutput<sbyte>();
+                outputPart = (sbyte)(leftPart / rightPart);
+            }
+            else if (length == 2)
+            {
+                ref short leftPart = ref input.GetLeft<short>();
+                ref short rightPart = ref input.GetRight<short>();
+                ref short outputPart = ref input.GetOutput<short>();
+                outputPart = (short)(leftPart / rightPart);
+            }
+            else if (length == 4)
+            {
+                ref int leftPart = ref input.GetLeft<int>();
+                ref int rightPart = ref input.GetRight<int>();
+                ref int outputPart = ref input.GetOutput<int>();
+                outputPart = leftPart / rightPart;
+            }
+            else
+            {
+                throw new Exception($"Part size `{length}` is not supported");
             }
         }
 
         [UnmanagedCallersOnly]
         private static void FloatingAdd(MixFunction.Input input)
         {
-            unchecked
+            byte length = input.size;
+            if (length == 4)
             {
-                byte length = input.size;
-                if (length == 4)
-                {
-                    ref float leftPart = ref input.GetLeft<float>();
-                    ref float rightPart = ref input.GetRight<float>();
-                    ref float outputPart = ref input.GetOutput<float>();
-                    outputPart = leftPart + rightPart;
-                }
-                else
-                {
-                    throw new Exception($"Part size `{length}` is not supported");
-                }
+                ref float leftPart = ref input.GetLeft<float>();
+                ref float rightPart = ref input.GetRight<float>();
+                ref float outputPart = ref input.GetOutput<float>();
+                outputPart = leftPart + rightPart;
+            }
+            else
+            {
+                throw new Exception($"Part size `{length}` is not supported");
             }
         }
 
         [UnmanagedCallersOnly]
         private static void FloatingSubtract(MixFunction.Input input)
         {
-            unchecked
+            byte length = input.size;
+            if (length == 4)
             {
-                byte length = input.size;
-                if (length == 4)
-                {
-                    ref float leftPart = ref input.GetLeft<float>();
-                    ref float rightPart = ref input.GetRight<float>();
-                    ref float outputPart = ref input.GetOutput<float>();
-                    outputPart = leftPart - rightPart;
-                }
-                else
-                {
-                    throw new Exception($"Part size `{length}` is not supported");
-                }
+                ref float leftPart = ref input.GetLeft<float>();
+                ref float rightPart = ref input.GetRight<float>();
+                ref float outputPart = ref input.GetOutput<float>();
+                outputPart = leftPart - rightPart;
+            }
+            else
+            {
+                throw new Exception($"Part size `{length}` is not supported");
             }
         }
 
         [UnmanagedCallersOnly]
         private static void FloatingMultiply(MixFunction.Input input)
         {
-            unchecked
+            byte length = input.size;
+            if (length == 4)
             {
-                byte length = input.size;
-                if (length == 4)
-                {
-                    ref float leftPart = ref input.GetLeft<float>();
-                    ref float rightPart = ref input.GetRight<float>();
-                    ref float outputPart = ref input.GetOutput<float>();
-                    outputPart = leftPart * rightPart;
-                }
-                else
-                {
-                    throw new Exception($"Part size `{length}` is not supported");
-                }
+                ref float leftPart = ref input.GetLeft<float>();
+                ref float rightPart = ref input.GetRight<float>();
+                ref float outputPart = ref input.GetOutput<float>();
+                outputPart = leftPart * rightPart;
+            }
+            else
+            {
+                throw new Exception($"Part size `{length}` is not supported");
             }
         }
 
         [UnmanagedCallersOnly]
         private static void FloatingDivide(MixFunction.Input input)
         {
-            unchecked
+            byte length = input.size;
+            if (length == 4)
             {
-                byte length = input.size;
-                if (length == 4)
-                {
-                    ref float leftPart = ref input.GetLeft<float>();
-                    ref float rightPart = ref input.GetRight<float>();
-                    ref float outputPart = ref input.GetOutput<float>();
-                    outputPart = leftPart / rightPart;
-                }
-                else
-                {
-                    throw new Exception($"Part size `{length}` is not supported");
-                }
+                ref float leftPart = ref input.GetLeft<float>();
+                ref float rightPart = ref input.GetRight<float>();
+                ref float outputPart = ref input.GetOutput<float>();
+                outputPart = leftPart / rightPart;
+            }
+            else
+            {
+                throw new Exception($"Part size `{length}` is not supported");
             }
         }
 
