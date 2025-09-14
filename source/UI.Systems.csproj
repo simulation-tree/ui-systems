@@ -10,7 +10,7 @@
     <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
     <Title>UI Systems</Title>
     <Authors>popcron</Authors>
-    <Company>simulation-tree</Company>
+    <Company>Simulation Tree</Company>
     <RepositoryUrl>https://github.com/simulation-tree/ui-systems</RepositoryUrl>
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <OutDir>bin/$(TargetFramework)/$(Configuration)</OutDir>
