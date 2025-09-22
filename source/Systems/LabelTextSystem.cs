@@ -63,7 +63,7 @@ namespace UI.Systems
             for (int c = 0; c < chunks.Length; c++)
             {
                 Chunk chunk = chunks[c];
-                if (chunk.componentTypes.Contains(processorType))
+                if (chunk.ComponentTypes.Contains(processorType))
                 {
                     ComponentEnumerator<IsLabelProcessor> components = chunk.GetComponents<IsLabelProcessor>(processorType);
                     for (int i = 0; i < components.length; i++)
@@ -73,7 +73,7 @@ namespace UI.Systems
                     }
                 }
 
-                if (chunk.componentTypes.Contains(tokenType))
+                if (chunk.ComponentTypes.Contains(tokenType))
                 {
                     ComponentEnumerator<IsToken> components = chunk.GetComponents<IsToken>(tokenType);
                     ReadOnlySpan<uint> entities = chunk.Entities;
@@ -89,7 +89,7 @@ namespace UI.Systems
             for (int c = 0; c < chunks.Length; c++)
             {
                 Chunk chunk = chunks[c];
-                if (chunk.tagTypes.Contains(labelTag) && chunk.componentTypes.Contains(textRendererType) && chunk.ArrayTypes.Contains(labelCharacterArrayType) && !chunk.IsDisabled)
+                if (chunk.TagTypes.Contains(labelTag) && chunk.ComponentTypes.Contains(textRendererType) && chunk.ArrayTypes.Contains(labelCharacterArrayType) && !chunk.IsDisabled)
                 {
                     ReadOnlySpan<uint> labelEntities = chunk.Entities;
                     ComponentEnumerator<IsTextRenderer> components = chunk.GetComponents<IsTextRenderer>(textRendererType);

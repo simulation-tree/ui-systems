@@ -49,7 +49,7 @@ namespace UI.Systems
             for (int c = 0; c < chunks.Length; c++)
             {
                 Chunk chunk = chunks[c];
-                if (chunk.componentTypes.Contains(dropShadowComponent))
+                if (chunk.ComponentTypes.Contains(dropShadowComponent))
                 {
                     ReadOnlySpan<uint> entities = chunk.Entities;
                     ComponentEnumerator<IsDropShadow> components = chunk.GetComponents<IsDropShadow>(dropShadowComponent);
@@ -93,7 +93,7 @@ namespace UI.Systems
                 Chunk chunk = chunks[c];
                 if (chunk.Count > 0)
                 {
-                    if (chunk.componentTypes.Contains(dropShadowComponent) && !chunk.componentTypes.Contains(scaleComponent))
+                    if (chunk.ComponentTypes.Contains(dropShadowComponent) && !chunk.ComponentTypes.Contains(scaleComponent))
                     {
                         ReadOnlySpan<uint> entities = chunk.Entities;
                         operation.AppendMultipleEntitiesToSelection(entities);
@@ -119,7 +119,7 @@ namespace UI.Systems
             for (int c = 0; c < chunks.Length; c++)
             {
                 Chunk chunk = chunks[c];
-                if (chunk.componentTypes.ContainsAll(componentTypes))
+                if (chunk.ComponentTypes.ContainsAll(componentTypes))
                 {
                     ReadOnlySpan<uint> entities = chunk.Entities;
                     ComponentEnumerator<IsDropShadow> dropShadowComponents = chunk.GetComponents<IsDropShadow>(dropShadowComponent);

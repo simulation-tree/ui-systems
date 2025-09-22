@@ -46,7 +46,7 @@ namespace UI.Systems
             for (int c = 0; c < chunks.Length; c++)
             {
                 Chunk chunk = chunks[c];
-                if (chunk.componentTypes.Contains(triggerType) && !chunk.IsDisabled)
+                if (chunk.ComponentTypes.Contains(triggerType) && !chunk.IsDisabled)
                 {
                     ReadOnlySpan<uint> entities = chunk.Entities;
                     ComponentEnumerator<IsTrigger> triggers = chunk.GetComponents<IsTrigger>(triggerType);

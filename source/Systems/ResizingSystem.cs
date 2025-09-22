@@ -50,7 +50,7 @@ namespace UI.Systems
             for (int c = 0; c < chunks.Length; c++)
             {
                 Chunk chunk = chunks[c];
-                if (chunk.componentTypes.Contains(pointerType) && !chunk.IsDisabled)
+                if (chunk.ComponentTypes.Contains(pointerType) && !chunk.IsDisabled)
                 {
                     ReadOnlySpan<uint> entities = chunk.Entities;
                     ComponentEnumerator<IsPointer> components = chunk.GetComponents<IsPointer>(pointerType);

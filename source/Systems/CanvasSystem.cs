@@ -42,7 +42,7 @@ namespace UI.Systems
             for (int c = 0; c < chunks.Length; c++)
             {
                 Chunk chunk = chunks[c];
-                if (chunk.componentTypes.ContainsAll(canvasComponents) && !chunk.IsDisabled)
+                if (chunk.ComponentTypes.ContainsAll(canvasComponents) && !chunk.IsDisabled)
                 {
                     ReadOnlySpan<uint> entities = chunk.Entities;
                     ComponentEnumerator<IsCanvas> canvasComponents = chunk.GetComponents<IsCanvas>(canvasType);
